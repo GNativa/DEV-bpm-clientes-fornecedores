@@ -13,6 +13,7 @@ const Controlador = (() => {
 
     let validador = new Validador();
 
+    let inicializado = false;
     let cadastroInapto = false;
 
     let campos = {},
@@ -37,6 +38,8 @@ const Controlador = (() => {
     // Verificar se a inicialização está sendo feita corretamente
     function _init(data, info) {
         inicializar();
+        inicializado = true;
+
         const { initialVariables } = data["loadContext"];
         console.log(initialVariables);
 
@@ -185,6 +188,10 @@ const Controlador = (() => {
     }
 
     const inicializar = () => {
+        if (inicializado) {
+            return;
+        }
+
         gerarFormulario();
         campos = {...aprovacao, ...dadosPrincipais, ...contaBancaria, ...detalhesDocumentos, ...controle};
         // listarCampos();
