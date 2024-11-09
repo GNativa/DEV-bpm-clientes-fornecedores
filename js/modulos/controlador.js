@@ -171,9 +171,9 @@ const Controlador = (() => {
         dados.favEmail = campos["favEmail"].val();
         dados.favTelefone = campos["favTelefone"].cleanVal();
         dados.observacoes = campos["observacoes"].val();
-        dados.documentosPessoaFisica = campos["documentosPessoaFisica"].prop("files");
-        dados.comprovanteEndereco = campos["comprovanteEndereco"].prop("files");
-        dados.comprovanteContaBancaria = campos["comprovanteContaBancaria"].prop("files");
+        dados.documentosPessoaFisica = campos["documentosPessoaFisica"].campo.prop("files");
+        dados.comprovanteEndereco = campos["comprovanteEndereco"].campo.prop("files");
+        dados.comprovanteContaBancaria = campos["comprovanteContaBancaria"].campo.prop("files");
         dados.retornoRegra = campos["retornoRegra"].val();
 
         console.log(dados);
