@@ -34,6 +34,7 @@ const Controlador = (() => {
         onError: _rollback,
     });
 
+    // Verificar se a inicialização está sendo feita corretamente
     function _init(data, info) {
         const { initialVariables } = data["loadContext"];
         console.log(initialVariables);
