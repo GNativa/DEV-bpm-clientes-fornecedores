@@ -36,6 +36,7 @@ const Controlador = (() => {
 
     // Verificar se a inicialização está sendo feita corretamente
     function _init(data, info) {
+        inicializar();
         const { initialVariables } = data["loadContext"];
         console.log(initialVariables);
 
