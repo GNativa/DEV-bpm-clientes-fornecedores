@@ -38,8 +38,6 @@ const Controlador = (() => {
     // Verificar se a inicialização está sendo feita corretamente
     function _init(data, info) {
         inicializar();
-        inicializado = true;
-
         const { initialVariables } = data["loadContext"];
         console.log(initialVariables);
 
@@ -190,6 +188,8 @@ const Controlador = (() => {
         if (inicializado) {
             return;
         }
+        
+        inicializado = true;
 
         gerarFormulario();
         campos = {...aprovacao, ...dadosPrincipais, ...contaBancaria, ...detalhesDocumentos, ...controle};
