@@ -1,4 +1,4 @@
-body, .form-select {
+body, .form-select, input[type="file"] {
     font-family: Poppins, sans-serif;
     color: #3f4150;
 }
