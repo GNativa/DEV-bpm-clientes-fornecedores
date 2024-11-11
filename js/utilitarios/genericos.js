@@ -38,7 +38,7 @@ const Genericos = (() => {
 
     const carregarArquivosDeString = (string) => {
         if (string === "") {
-            return new FileList();
+            return null;
         }
 
         const conteudoArquivos = JSON.parse(string);
