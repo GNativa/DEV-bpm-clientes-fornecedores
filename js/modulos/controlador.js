@@ -45,8 +45,18 @@ const Controlador = (() => {
             .getUserData()
             .then(function (user) {
                 console.log(user);
-                // user.fullname
-                // user.email
+                /*
+                {
+                    "id": "b64e1f31-9b9a-42f8-bd0a-7ac34e8b9206",
+                    "username": "carlos.santos@gruponativa-homolog.com.br",
+                    "subject": "carlos.santos",
+                    "fullname": "Carlos Henrique Menezes dos Santos",
+                    "email": "carlos.santos@gruponativa.com.br",
+                    "tenantName": "gruponativa-homologcombr",
+                    "tenantLocale": "pt-BR",
+                    "locale": "pt-BR"
+                }
+                 */
             })
             .then(function () {
                 info.getPlatformData().then(function (platformData) {
@@ -109,15 +119,24 @@ const Controlador = (() => {
                     campos["favEmail"].val(map.get("favEmail") || "");
                     campos["favTelefone"].val(map.get("favTelefone") || "");
                     campos["observacoes"].val(map.get("observacoes") || "");
-                    campos["documentosPessoaFisica"].campo.prop("files", map.get("documentosPessoaFisica"));
-                    campos["comprovanteEndereco"].campo.prop("files", map.get("comprovanteEndereco"));
-                    campos["comprovanteContaBancaria"].campo.prop("files", map.get("comprovanteContaBancaria"));
+                    campos["documentosPessoaFisica"].campo.prop(
+                        "files",
+                        Genericos.carregarArquivosDeString(map.get("documentosPessoaFisica"))
+                    );
+                    campos["comprovanteEndereco"].campo.prop(
+                        "files",
+                        Genericos.carregarArquivosDeString(map.get("comprovanteEndereco"))
+                    );
+                    campos["comprovanteContaBancaria"].campo.prop(
+                        "files",
+                        Genericos.carregarArquivosDeString(map.get("comprovanteContaBancaria"))
+                    );
                     campos["retornoRegra"].val(map.get("retornoRegra") || "");
                 }
             });
     }
 
-    function _saveData(data, info) {
+    async function _saveData(data, info) {
         validador.validarCampos();
 
         if (!validador.formularioValido()) {
@@ -169,10 +188,25 @@ const Controlador = (() => {
         dados.favEmail = campos["favEmail"].val();
         dados.favTelefone = campos["favTelefone"].cleanVal();
         dados.observacoes = campos["observacoes"].val();
-        dados.documentosPessoaFisica = campos["documentosPessoaFisica"].campo.prop("files");
-        dados.comprovanteEndereco = campos["comprovanteEndereco"].campo.prop("files");
-        dados.comprovanteContaBancaria = campos["comprovanteContaBancaria"].campo.prop("files");
         dados.retornoRegra = campos["retornoRegra"].val();
+
+        try {
+            dados.documentosPessoaFisica = await Genericos.salvarArquivosEmString(
+                campos["documentosPessoaFisica"].campo.prop("files")
+            );
+
+            dados.comprovanteEndereco = await Genericos.salvarArquivosEmString(
+                campos["comprovanteEndereco"].campo.prop("files")
+            );
+
+            dados.comprovanteContaBancaria = await Genericos.salvarArquivosEmString(
+                campos["comprovanteContaBancaria"].campo.prop("files")
+            );
+        }
+        catch (erro) {
+            throw erro;
+        }
+
         console.log(dados);
 
         return {
@@ -453,7 +487,7 @@ const Controlador = (() => {
             campoComplemento.val(complemento);
             campoEmailContato.val(email);
             campoTelefone.val(telefone);
-            if (campoContatoAdicional !== null) campoContatoAdicional.val(telefoneAdicional);
+            if (campoContatoAdicional !== null && campoContatoAdicional !== undefined) campoContatoAdicional.val(telefoneAdicional);
 
             carregaveis.filter("[required]").trigger("blur.obrigatorio");
         }).fail(function () {
