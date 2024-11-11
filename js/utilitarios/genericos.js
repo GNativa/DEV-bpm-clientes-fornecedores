@@ -37,6 +37,10 @@ const Genericos = (() => {
     }
 
     const carregarArquivosDeString = (string) => {
+        if (string === "") {
+            return new FileList();
+        }
+
         const conteudoArquivos = JSON.parse(string);
         const dataTransfer = new DataTransfer();
 
