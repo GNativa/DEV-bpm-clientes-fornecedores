@@ -122,15 +122,15 @@ const Controlador = (() => {
                     campos["documentosPessoaFisica"].campo.prop(
                         "files",
                         Genericos.carregarArquivosDeString(map.get("documentosPessoaFisica"))
-                    );
+                    ).trigger("change");
                     campos["comprovanteEndereco"].campo.prop(
                         "files",
                         Genericos.carregarArquivosDeString(map.get("comprovanteEndereco"))
-                    );
+                    ).trigger("change");
                     campos["comprovanteContaBancaria"].campo.prop(
                         "files",
                         Genericos.carregarArquivosDeString(map.get("comprovanteContaBancaria"))
-                    );
+                    ).trigger("change");
                     campos["retornoRegra"].val(map.get("retornoRegra") || "");
                 }
             });
