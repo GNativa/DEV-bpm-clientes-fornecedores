@@ -4,7 +4,7 @@ const Genericos = (() => {
             const arquivos = input.files;
 
             if (arquivos.length === 0) {
-                reject(`Nenhum arquivo selecionado no campo de anexo "${input.id}" .`);
+                resolve("");
             }
 
             let conteudoArquivos = [];
@@ -28,7 +28,7 @@ const Genericos = (() => {
                 }
 
                 leitor.onerror = function() {
-                    reject(`Erro ao ler o arquivo contendo os anexos do campo de anexo "${input.id}".`);
+                    reject(`Erro ao ler o arquivo "${arquivo.name}" do campo de anexo "${input.id}".`);
                 }
 
                 leitor.readAsText(arquivo);
