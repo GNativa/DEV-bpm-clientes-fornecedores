@@ -192,15 +192,15 @@ const Controlador = (() => {
 
         try {
             dados.documentosPessoaFisica = await Genericos.salvarArquivosEmString(
-                campos["documentosPessoaFisica"].campo.prop("files")
+                campos["documentosPessoaFisica"].obterElementoHtml()
             );
 
             dados.comprovanteEndereco = await Genericos.salvarArquivosEmString(
-                campos["comprovanteEndereco"].campo.prop("files")
+                campos["comprovanteEndereco"].obterElementoHtml()
             );
 
             dados.comprovanteContaBancaria = await Genericos.salvarArquivosEmString(
-                campos["comprovanteContaBancaria"].campo.prop("files")
+                campos["comprovanteContaBancaria"].obterElementoHtml()
             );
         }
         catch (erro) {
@@ -224,7 +224,6 @@ const Controlador = (() => {
         }
         
         inicializado = true;
-
         gerarFormulario();
         campos = {...aprovacao, ...dadosPrincipais, ...contaBancaria, ...detalhesDocumentos, ...controle};
         // listarCampos();
