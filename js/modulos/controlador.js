@@ -121,15 +121,15 @@ const Controlador = (() => {
                     campos["observacoes"].val(map.get("observacoes") || "");
                     campos["documentosPessoaFisica"].campo.prop(
                         "files",
-                        Genericos.carregarArquivosDeString(map.get("documentosPessoaFisica"))
+                        Genericos.carregarArquivosDeString(map.get("documentosPessoaFisica") || "")
                     ).trigger("change");
                     campos["comprovanteEndereco"].campo.prop(
                         "files",
-                        Genericos.carregarArquivosDeString(map.get("comprovanteEndereco"))
+                        Genericos.carregarArquivosDeString(map.get("comprovanteEndereco") || "")
                     ).trigger("change");
                     campos["comprovanteContaBancaria"].campo.prop(
                         "files",
-                        Genericos.carregarArquivosDeString(map.get("comprovanteContaBancaria"))
+                        Genericos.carregarArquivosDeString(map.get("comprovanteContaBancaria") || "")
                     ).trigger("change");
                     campos["retornoRegra"].val(map.get("retornoRegra") || "");
                 }
@@ -189,23 +189,15 @@ const Controlador = (() => {
         dados.favTelefone = campos["favTelefone"].cleanVal();
         dados.observacoes = campos["observacoes"].val();
         dados.retornoRegra = campos["retornoRegra"].val();
-
-        try {
-            dados.documentosPessoaFisica = await Genericos.salvarArquivosEmString(
-                campos["documentosPessoaFisica"].obterElementoHtml()
-            );
-
-            dados.comprovanteEndereco = await Genericos.salvarArquivosEmString(
-                campos["comprovanteEndereco"].obterElementoHtml()
-            );
-
-            dados.comprovanteContaBancaria = await Genericos.salvarArquivosEmString(
-                campos["comprovanteContaBancaria"].obterElementoHtml()
-            );
-        }
-        catch (erro) {
-            throw erro;
-        }
+        dados.documentosPessoaFisica = await Genericos.salvarArquivosEmString(
+            campos["documentosPessoaFisica"].obterElementoHtml()
+        );
+        dados.comprovanteEndereco = await Genericos.salvarArquivosEmString(
+            campos["comprovanteEndereco"].obterElementoHtml()
+        );
+        dados.comprovanteContaBancaria = await Genericos.salvarArquivosEmString(
+            campos["comprovanteContaBancaria"].obterElementoHtml()
+        );
 
         console.log(dados);
 
@@ -222,7 +214,7 @@ const Controlador = (() => {
         if (inicializado) {
             return;
         }
-        
+
         inicializado = true;
         gerarFormulario();
         campos = {...aprovacao, ...dadosPrincipais, ...contaBancaria, ...detalhesDocumentos, ...controle};
@@ -243,6 +235,22 @@ const Controlador = (() => {
 
     const definirEstadoInicial = () => {
         botaoEnviar = $("#enviar");
+
+        /*
+            TODO: definir campos com base na etapa
+            Ex.: https://gnativa.github.io/bpm-clientes-fornecedores/?etapa=Tal
+         */
+
+        const url = new URL(window.location.toLocaleString());
+        const parametros = url.searchParams;
+
+        if (parametros.has("etapa")) {
+            const etapa = parametros.get("etapa");
+
+            switch (etapa) {
+
+            }
+        }
 
         for (const idCampo of camposObrigatorios["cpf"]) {
             campos[idCampo].definirObrigatoriedade(true);
@@ -301,8 +309,8 @@ const Controlador = (() => {
                 null,
                 null,
                 [campos["razaoSocial"], campos["nomeFantasia"], campos["cep"], campos["logradouro"],
-                    campos["numero"], campos["bairro"], campos["emailContato"], campos["telefone"]]),
-
+                    campos["numero"], campos["bairro"], campos["emailContato"], campos["telefone"]]
+            ),
             new Validacao(() => {
                     return campos["formaPagamento"].val() === "3";
                 },
@@ -315,7 +323,8 @@ const Controlador = (() => {
                 null,
                 [campos["banco"], campos["agenciaDigito"], campos["contaDigito"], campos["tipoConta"],
                     campos["documentoConta"], campos["titularConta"]],
-                [campos["documentoConta"]]),
+                [campos["documentoConta"]]
+            ),
 
             new Validacao(() => {
                     const documentoCadastro = campos["documento"].val();
@@ -327,7 +336,8 @@ const Controlador = (() => {
                 },
                 null,
                 [campos["documento"], campos["documentoConta"]],
-                [campos["documentoConta"]]),
+                [campos["documentoConta"]]
+            ),
 
             new Validacao(() => {
                     const documentoCadastro = campos["documento"].val();
@@ -355,7 +365,8 @@ const Controlador = (() => {
                 },
                 null,
                 [campos["documento"], campos["cadastroComRestricao"]],
-                [campos["documento"]]),
+                [campos["documento"]]
+            ),
 
             new Validacao(() => {
                     return cadastroInapto;
@@ -366,7 +377,8 @@ const Controlador = (() => {
                 [campos["cadastroComRestricao"]],
                 null,
                 null,
-                [campos["cadastroComRestricao"]]),
+                [campos["cadastroComRestricao"]]
+            ),
         ];
 
         validador.configurarValidacoes();

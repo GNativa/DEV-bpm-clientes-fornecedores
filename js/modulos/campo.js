@@ -46,11 +46,11 @@ class Campo {
         this.links = null;
         this.classeCarregaveis = null;
 
-        this.obterLinks = (campo) => {
+        this.obterLinks = () => {
             const links = this.links;
             links.innerHTML = "";
 
-            for (const arquivo of campo.files) {
+            for (const arquivo of this.obterElementoHtml().files) {
                 const link = document.createElement("a");
                 link.target = "_blank";
                 link.href = URL.createObjectURL(arquivo);
@@ -155,9 +155,8 @@ class Campo {
 
             this.links = links;
 
-            // Gerar links para acessar os arquivos anexados
-            campo.addEventListener("change", () => {
-                this.obterLinks(campo);
+            $(campo).on("change", () => {
+                this.obterLinks();
             });
         }
 
