@@ -218,7 +218,6 @@ const Controlador = (() => {
         inicializado = true;
         gerarFormulario();
         campos = {...aprovacao, ...dadosPrincipais, ...contaBancaria, ...detalhesDocumentos, ...controle};
-        // listarCampos();
         definirEstadoInicial();
         configurarEventos();
     }
