@@ -1,54 +1,55 @@
 const Genericos = (() => {
-    const salvarArquivosEmString = (input) => {
+    const salvarArquivosEmString = (inputElement) => {
         return new Promise((resolve, reject) => {
-            const arquivos = input.files;
+            const arquivos = inputElement.files;
+            const dadosArquivos = [];
 
             if (arquivos.length === 0) {
-                resolve("");
+                resolve(""); // Retorna string vazia se não há arquivos selecionados
+                return;
             }
 
-            let conteudoArquivos = [];
-            let arquivosProcessados = 0;
+            let arquivosLidos = 0;
 
-            for (const arquivo of arquivos) {
-                const leitor = new FileReader();
+            for (let i = 0; i < arquivos.length; i++) {
+                const arquivo = arquivos[i];
+                const reader = new FileReader();
 
-                leitor.onload = function (evento) {
-                    conteudoArquivos.push({
-                        name: arquivo.name,
-                        type: arquivo.type,
-                        content: evento.target.result
+                reader.onload = function(event) {
+                    dadosArquivos.push({
+                        nome: arquivo.name,
+                        tipo: arquivo.type,
+                        conteudo: event.target.result
                     });
 
-                    arquivosProcessados++;
-
-                    if (arquivosProcessados === arquivos.length) {
-                        resolve(JSON.stringify(conteudoArquivos));
+                    arquivosLidos++;
+                    if (arquivosLidos === arquivos.length) {
+                        const stringUnica = JSON.stringify(dadosArquivos); // Converte o array de dados em uma única string JSON
+                        resolve(stringUnica);
                     }
-                }
+                };
 
-                leitor.onerror = function() {
-                    reject(`Erro ao ler o arquivo "${arquivo.name}" do campo de anexo "${input.id}".`);
-                }
+                reader.onerror = function(error) {
+                    reject(error);
+                };
 
-                leitor.readAsText(arquivo);
+                reader.readAsDataURL(arquivo); // Lê como base64
             }
         });
     }
 
-    const carregarArquivosDeString = (string) => {
-        if (string === "") {
-            return null;
-        }
 
-        const conteudoArquivos = JSON.parse(string);
+    const carregarArquivosDeString = (stringUnica) => {
+        const dadosArquivos = JSON.parse(stringUnica); // Converte a string JSON de volta para o array de objetos
+
+        const arquivos = dadosArquivos.map((arquivoData) => {
+            const conteudo = arquivoData.conteudo.split(',')[1]; // Remove o prefixo data:mime/type;base64,
+            const blob = new Blob([Uint8Array.from(atob(conteudo), c => c.charCodeAt(0))], { type: arquivoData.tipo });
+            return new File([blob], arquivoData.nome, { type: arquivoData.tipo });
+        });
+
         const dataTransfer = new DataTransfer();
-
-        for (const conteudo of conteudoArquivos) {
-            const blob = new Blob([conteudo["content"]], {type: conteudo["type"]});
-            const arquivo = new File([blob], conteudo["type"], {type: conteudo["type"]});
-            dataTransfer.items.add(arquivo);
-        }
+        arquivos.forEach((arquivo) => dataTransfer.items.add(arquivo));
 
         return dataTransfer.files;
     }
