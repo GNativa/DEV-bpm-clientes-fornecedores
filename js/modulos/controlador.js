@@ -157,6 +157,7 @@ const Controlador = (() => {
                         "files",
                         Genericos.carregarArquivosDeString(map.get("comprovanteContaBancaria") || "")
                     ).trigger("change");
+                    campos["nomeUsuario"].val(map.get("nomeUsuario") || "");
                     campos["retornoRegra"].val(map.get("retornoRegra") || "");
                 }
             });
@@ -214,7 +215,6 @@ const Controlador = (() => {
         dados.favEmail = campos["favEmail"].val();
         dados.favTelefone = campos["favTelefone"].cleanVal();
         dados.observacoes = campos["observacoes"].val();
-        dados.retornoRegra = campos["retornoRegra"].val();
         dados.documentosPessoaFisica = await Genericos.salvarArquivosEmString(
             campos["documentosPessoaFisica"].obterElementoHtml()
         );
@@ -224,6 +224,8 @@ const Controlador = (() => {
         dados.comprovanteContaBancaria = await Genericos.salvarArquivosEmString(
             campos["comprovanteContaBancaria"].obterElementoHtml()
         );
+        dados.nomeUsuario = campos["nomeUsuario"].val();
+        dados.retornoRegra = campos["retornoRegra"].val();
 
         console.log(dados);
 
