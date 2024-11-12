@@ -848,6 +848,9 @@ const Controlador = (() => {
         
         const camposControle = [
             new Campo(
+              "nomeUsuario", "Usuário solicitante", "texto", "2"
+            ),
+            new Campo(
                 "retornoRegra", "Retorno da regra", "area-texto", "12",
                 "Retorno da regra de integração do ERP que fará o cadastro no sistema.", 5
             ),
