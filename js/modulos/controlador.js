@@ -102,12 +102,14 @@ const Controlador = (() => {
                         map.set(data[i].key, data[i].value || "");
                     }
 
-                    console.log(data);
                     console.log("Carregando dados: ", map);
 
                     campos["observacoesAprovacao"].val(map.get("observacoesAprovacao") || "");
                     campos["documento"].val(map.get("documento") || "");
                     campos["cadastroComRestricao"].campo.prop("checked", map.get("cadastroComRestricao"));
+
+                    console.log(map.get("cadastroComRestricao"));
+
                     campos["razaoSocial"].val(map.get("razaoSocial") || "");
                     campos["nomeFantasia"].val(map.get("nomeFantasia") || "");
                     campos["mercadoExterior"].campo.prop("checked", map.get("mercadoExterior"));
