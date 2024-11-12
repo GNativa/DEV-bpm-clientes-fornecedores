@@ -28,12 +28,12 @@ const Controlador = (() => {
         "revisaoErros": ["estado", "cidade"]
     }
     const camposOcultos = {
-        "solicitacao": ["observacoesAprovacao", "retornoRegra"],
-        "aprovacaoInicial": ["retornoRegra"],
+        "solicitacao": ["observacoesAprovacao", "retornoRegra", "nomeUsuario"],
+        "aprovacaoInicial": ["retornoRegra", "nomeUsuario"],
         "execucao": [],
-        "aprovacaoContasBancarias": ["retornoRegra"],
-        "revisaoAprovacao": ["retornoRegra"],
-        "revisaoErros": ["retornoRegra"]
+        "aprovacaoContasBancarias": ["retornoRegra", "nomeUsuario"],
+        "revisaoAprovacao": ["retornoRegra", "nomeUsuario"],
+        "revisaoErros": ["retornoRegra", "nomeUsuario"]
     }
 
     let validador = new Validador();
