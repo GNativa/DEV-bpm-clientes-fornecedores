@@ -106,11 +106,11 @@ const Controlador = (() => {
 
                     campos["observacoesAprovacao"].val(map.get("observacoesAprovacao") || "");
                     campos["documento"].val(map.get("documento") || "");
-                    campos["cadastroComRestricao"].obterElementoHtml().checked = map.get("cadastroComRestricao");
+                    campos["cadastroComRestricao"].campo.prop("checked", map.get("cadastroComRestricao") ?? "false" === "true");
                     campos["razaoSocial"].val(map.get("razaoSocial") || "");
                     campos["nomeFantasia"].val(map.get("nomeFantasia") || "");
-                    campos["mercadoExterior"].obterElementoHtml().checked = map.get("mercadoExterior");
-                    campos["fornecedorIndustria"].obterElementoHtml().checked = map.get("fornecedorIndustria");
+                    campos["mercadoExterior"].campo.prop("checked", map.get("mercadoExterior") ?? "false" === "true");
+                    campos["fornecedorIndustria"].campo.prop("checked", map.get("fornecedorIndustria") ?? "false" === "true");
                     campos["ramoAtividade"].val(map.get("ramoAtividade") || "");
                     campos["inscricaoEstadual"].val(map.get("inscricaoEstadual") || "");
                     campos["cep"].val(map.get("cep") || "");
