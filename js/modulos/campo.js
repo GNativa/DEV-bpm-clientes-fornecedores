@@ -39,9 +39,14 @@ class Campo {
         this.altura = altura !== undefined && altura !== null ? `${altura}lh` : null;
         this.dica = dica ?? null;
         this.propriedadesAdicionais = propriedadesAdicionais ?? {};
+
         this.obrigatorio = false;
         this.visivel = true;
         this.editavel = true;
+
+        this.visibilidadeSobrescrita = false;
+        this.editabilidadeSobrescrita = false;
+
         this.feedback = null;
         this.links = null;
         this.classeCarregaveis = null;
@@ -235,7 +240,19 @@ class Campo {
         return this;
     }
 
+    sobrescreverEditabilidade(editabilidade) {
+        this.editabilidadeSobrescrita = editabilidade;
+    }
+
+    sobrescreverVisibilidade(visibilidade) {
+        this.visibilidadeSobrescrita = visibilidade;
+    }
+
     definirVisibilidade(visivel) {
+        if (this.visibilidadeSobrescrita) {
+            return this;
+        }
+
         this.visivel = visivel;
 
         if (this.visivel) {
@@ -249,6 +266,10 @@ class Campo {
     }
 
     definirEdicao(editavel) {
+        if (this.editabilidadeSobrescrita) {
+            return this;
+        }
+
         this.editavel = editavel;
         this.campo.prop("disabled", !this.editavel);
         return this;

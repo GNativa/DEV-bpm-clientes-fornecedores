@@ -1,18 +1,44 @@
 const Controlador = (() => {
     const camposObrigatorios = {
-        "cpf": ["documento", "razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "logradouro", "numero", "bairro",
+        "solicitacao": ["documento", "razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "logradouro", "numero", "bairro",
             "formaPagamento", "documentosPessoaFisica", "comprovanteEndereco"],
-        "cnpj": ["documento", "razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "logradouro", "numero", "bairro",
-            "formaPagamento"],
+        "aprovacaoInicial": ["observacoesAprovacao"],
+        "execucao": [],
+        "aprovacaoContasBancarias": ["observacoesAprovacao"],
+        "revisaoAprovacao": ["documento", "razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "logradouro", "numero", "bairro",
+            "formaPagamento", "documentosPessoaFisica", "comprovanteEndereco"],
+        "revisaoErros": ["documento", "razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "logradouro", "numero", "bairro",
+            "formaPagamento", "documentosPessoaFisica", "comprovanteEndereco"]
     };
-
-    let camposBloqueados = {
-        "cpf": ["estado", "cidade"],
-        "cnpj": ["razaoSocial", "nomeFantasia", "cep", "estado", "cidade", "logradouro", "numero", "bairro", "complemento"],
+    const camposBloqueados = {
+        "solicitacao": ["estado", "cidade"],
+        "aprovacaoInicial": ["documento", "cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
+            "ramoAtividade", "inscricaoEstadual", "cep", "estado", "cidade", "logradouro", "numero", "bairro", "complemento", "enderecoCorresp",
+            "nomeContato", "emailContato", "emailAdicional", "telefone", "celular", "contatoAdicional", "formaPagamento", "banco", "agenciaDigito",
+            "contaDigito", "tipoConta", "documentoConta", "titularConta", "favNomeFantasia", "favCep", "favEstado", "favCidade", "favLogradouro",
+            "favBairro", "favNumero", "favComplemento", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco",
+            "comprovanteContaBancaria", "retornoRegra"],
+        "execucao": [],
+        "aprovacaoContasBancarias": ["documento", "cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
+            "ramoAtividade", "inscricaoEstadual", "cep", "estado", "cidade", "logradouro", "numero", "bairro", "complemento", "enderecoCorresp",
+            "nomeContato", "emailContato", "emailAdicional", "telefone", "celular", "contatoAdicional", "formaPagamento", "banco", "agenciaDigito",
+            "contaDigito", "tipoConta", "documentoConta", "titularConta", "favNomeFantasia", "favCep", "favEstado", "favCidade", "favLogradouro",
+            "favBairro", "favNumero", "favComplemento", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco", "retornoRegra"],
+        "revisaoAprovacao": ["estado", "cidade"],
+        "revisaoErros": ["estado", "cidade"]
+    }
+    const camposOcultos = {
+        "solicitacao": ["observacoesAprovacao", "retornoRegra"],
+        "aprovacaoInicial": ["retornoRegra"],
+        "execucao": [],
+        "aprovacaoContasBancarias": ["retornoRegra"],
+        "revisaoAprovacao": ["retornoRegra"],
+        "revisaoErros": ["retornoRegra"]
     }
 
     let validador = new Validador();
 
+    let etapa;
     let inicializado = false;
     let cadastroInapto = false;
 
@@ -218,49 +244,24 @@ const Controlador = (() => {
         inicializado = true;
         gerarFormulario();
         campos = {...aprovacao, ...dadosPrincipais, ...contaBancaria, ...detalhesDocumentos, ...controle};
+        listarCampos();
         definirEstadoInicial();
-        configurarEventos();
     }
 
     const listarCampos = () => {
         const props = [];
 
         for (const prop in campos) {
-            props.push(prop);
+            props.push(`"${prop}"`);
         }
 
-        console.log(props.join("\n"));
+        console.log(props.join(", "));
     }
 
     const definirEstadoInicial = () => {
         botaoEnviar = $("#enviar");
-
-        /*
-            TODO: definir campos com base na etapa
-            Ex.: https://gnativa.github.io/bpm-clientes-fornecedores/?etapa=Tal
-         */
-
-        const url = new URL(window.location.toLocaleString());
-        const parametros = url.searchParams;
-
-        if (parametros.has("etapa")) {
-            const etapa = parametros.get("etapa");
-
-            switch (etapa) {
-
-            }
-        }
-
-        for (const idCampo of camposObrigatorios["cpf"]) {
-            campos[idCampo].definirObrigatoriedade(true);
-        }
-
-        for (const idCampo of camposBloqueados["cpf"]) {
-            campos[idCampo].definirEdicao(false);
-        }
-
-        secaoAprovacao.definirVisibilidade(false);
-        secaoControle.definirVisibilidade(false);
+        configurarEtapas();
+        configurarEventos();
 
         const opcoesDocumento = {
             onKeyPress: function (documento, ev, el, op) {
@@ -427,6 +428,35 @@ const Controlador = (() => {
                 consultarCep(...carregaveisCepFav);
             }
         );
+    }
+
+    const configurarEtapas = () => {
+        const url = new URL(window.location.toLocaleString());
+        const parametros = url.searchParams;
+        etapa = parametros.get("etapa");
+
+        if (etapa === null || !(etapa in camposObrigatorios)) {
+            for (const idCampo in campos) {
+                campos[idCampo].definirEdicao(false);
+                campos[idCampo].sobrescreverEditabilidade(true);
+            }
+
+            return;
+        }
+
+        for (const idCampo of camposObrigatorios[etapa]) {
+            campos[idCampo].definirObrigatoriedade(true);
+        }
+
+        for (const idCampo of camposBloqueados[etapa]) {
+            campos[idCampo].definirEdicao(false);
+            campos[idCampo].sobrescreverEditabilidade(true);
+        }
+
+        for (const idCampo of camposOcultos[etapa]) {
+            campos[idCampo].definirVisibilidade(false);
+            campos[idCampo].sobrescreverVisibilidade(true);
+        }
     }
 
     const configurarEventos = () => {
@@ -599,8 +629,8 @@ const Controlador = (() => {
                 ]),
             new Campo("inscricaoEstadual", "Inscrição estadual", "texto", 2),
             new Campo("cep", "CEP", "texto", 2),
-            new Campo("estado", "Estado", "texto", 2).definirEdicao(false),
-            new Campo("cidade", "Cidade", "texto", 4).definirEdicao(false),
+            new Campo("estado", "Estado", "texto", 2),
+            new Campo("cidade", "Cidade", "texto", 4),
             new Campo("logradouro", "Logradouro", "texto", 4),
             new Campo("numero", "Número", "texto", 2),
             new Campo("bairro", "Bairro", "texto", 4),
