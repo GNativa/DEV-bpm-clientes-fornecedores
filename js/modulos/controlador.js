@@ -137,7 +137,6 @@ const Controlador = (() => {
     }
 
     async function _saveData(data, info) {
-        /*
         validador.validarCampos();
 
         if (!validador.formularioValido()) {
@@ -145,8 +144,6 @@ const Controlador = (() => {
             alert(mensagem);
             throw new Error(mensagem);
         }
-
-         */
 
         let dados = {};
 
