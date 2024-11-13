@@ -38,7 +38,7 @@ const Controlador = (() => {
 
     let validador = new Validador();
 
-    let etapa;
+    let etapa = null;
     let inicializado = false;
     let cadastroInapto = false;
 
