@@ -40,6 +40,10 @@ const Genericos = (() => {
 
 
     const carregarArquivosDeString = (stringUnica) => {
+        if (stringUnica === "") {
+            return new DataTransfer().files;
+        }
+
         const dadosArquivos = JSON.parse(stringUnica); // Converte a string JSON de volta para o array de objetos
 
         const arquivos = dadosArquivos.map((arquivoData) => {
