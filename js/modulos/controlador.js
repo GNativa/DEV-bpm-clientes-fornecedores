@@ -38,7 +38,7 @@ const Controlador = (() => {
 
     let validador = new Validador();
 
-    let etapa;
+    let etapa = null;
     let inicializado = false;
     let cadastroInapto = false;
 
@@ -106,7 +106,7 @@ const Controlador = (() => {
 
                     campos["observacoesAprovacao"].val(map.get("observacoesAprovacao") || "");
                     campos["documento"].val(map.get("documento") || "");
-                    campos["cadastroComRestricao"].campo.prop("checked", map.get("cadastroComRestricao") ?? "false" === "true");
+                    campos["cadastroComRestricao"].campo.prop("checked", (map.get("cadastroComRestricao") ?? "false") === "true");
                     campos["razaoSocial"].val(map.get("razaoSocial") || "");
                     campos["nomeFantasia"].val(map.get("nomeFantasia") || "");
                     campos["mercadoExterior"].campo.prop("checked", (map.get("mercadoExterior") ?? "false") === "true");
