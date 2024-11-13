@@ -175,7 +175,7 @@ const Controlador = (() => {
         let dados = {};
 
         dados.observacoesAprovacao = campos["observacoesAprovacao"].val();
-        dados.documento = campos["documento"].val();
+        dados.documento = campos["documento"].cleanVal();
         dados.cadastroComRestricao = campos["cadastroComRestricao"].campo.prop("checked");
         dados.razaoSocial = campos["razaoSocial"].val();
         dados.nomeFantasia = campos["nomeFantasia"].val();
