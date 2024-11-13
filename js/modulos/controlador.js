@@ -109,8 +109,8 @@ const Controlador = (() => {
                     campos["cadastroComRestricao"].campo.prop("checked", map.get("cadastroComRestricao") ?? "false" === "true");
                     campos["razaoSocial"].val(map.get("razaoSocial") || "");
                     campos["nomeFantasia"].val(map.get("nomeFantasia") || "");
-                    campos["mercadoExterior"].campo.prop("checked", map.get("mercadoExterior") ?? "false" === "true");
-                    campos["fornecedorIndustria"].campo.prop("checked", map.get("fornecedorIndustria") ?? "false" === "true");
+                    campos["mercadoExterior"].campo.prop("checked", (map.get("mercadoExterior") ?? "false") === "true");
+                    campos["fornecedorIndustria"].campo.prop("checked", (map.get("fornecedorIndustria") ?? "false") === "true");
                     campos["ramoAtividade"].val(map.get("ramoAtividade") || "");
                     campos["inscricaoEstadual"].val(map.get("inscricaoEstadual") || "");
                     campos["cep"].val(map.get("cep") || "");
