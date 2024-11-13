@@ -25,7 +25,7 @@ const Controlador = (() => {
             "contaDigito", "tipoConta", "documentoConta", "titularConta", "favNomeFantasia", "favCep", "favEstado", "favCidade", "favLogradouro",
             "favBairro", "favNumero", "favComplemento", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco", "retornoRegra"],
         "revisaoAprovacao": ["estado", "cidade"],
-        "revisaoErros": ["estado", "cidade"]
+        "revisaoErros": ["estado", "cidade", "observacoesAprovacao"]
     }
     const camposOcultos = {
         "solicitacao": ["observacoesAprovacao", "retornoRegra", "nomeUsuario"],
