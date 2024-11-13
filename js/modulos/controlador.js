@@ -479,12 +479,12 @@ const Controlador = (() => {
         const carregaveis = $(campoDocumento.classeCarregaveis);
         const cnpj = campoDocumento.cleanVal();
 
-        if (cnpj === "" || cnpj.length < 14) {
+        if (cnpj === "" || (cnpj.length < 14 && campoRazaoSocial.val() !== "")) {
             carregaveis.val("");
             return;
         }
 
-        if (campoRazaoSocial.val() !== "") {
+        if (cnpj.length < 14) {
             return;
         }
 

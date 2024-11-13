@@ -180,7 +180,7 @@ class Campo {
 
     configurarMascara(mascara, opcoes) {
         this.opcoesMascara = opcoes ?? this.opcoesMascara;
-        this.campo.mask(mascara, this.opcoesMascara);
+        this.campo.mask(mascara, opcoes ?? this.opcoesMascara);
         return this;
     }
 
