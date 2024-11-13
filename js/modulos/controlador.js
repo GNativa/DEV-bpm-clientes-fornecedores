@@ -145,6 +145,8 @@ const Controlador = (() => {
                     campos["favEmail"].val(map.get("favEmail") || "");
                     campos["favTelefone"].val(map.get("favTelefone") || "");
                     campos["observacoes"].val(map.get("observacoes") || "");
+                    campos["nomeUsuario"].val(map.get("nomeUsuario") || "");
+                    campos["retornoRegra"].val(map.get("retornoRegra") || "");
                     campos["documentosPessoaFisica"].campo.prop(
                         "files",
                         Genericos.carregarArquivosDeString(map.get("documentosPessoaFisica") || "")
@@ -157,8 +159,6 @@ const Controlador = (() => {
                         "files",
                         Genericos.carregarArquivosDeString(map.get("comprovanteContaBancaria") || "")
                     ).trigger("change");
-                    campos["nomeUsuario"].val(map.get("nomeUsuario") || "");
-                    campos["retornoRegra"].val(map.get("retornoRegra") || "");
                 }
             });
     }
