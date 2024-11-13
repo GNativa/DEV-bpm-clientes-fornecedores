@@ -44,6 +44,9 @@ class Campo {
         this.visivel = true;
         this.editavel = true;
 
+        this.mascaraPadrao = "";
+        this.opcoesMascara = {clearIfNotMatch: true};
+
         this.visibilidadeSobrescrita = false;
         this.editabilidadeSobrescrita = false;
 
@@ -176,13 +179,8 @@ class Campo {
     }
 
     configurarMascara(mascara, opcoes) {
-        if (opcoes === undefined) {
-            this.campo.mask(mascara, {clearIfNotMatch: true});
-        }
-        else {
-            this.campo.mask(mascara, opcoes);
-        }
-
+        this.opcoesMascara = opcoes ?? this.opcoesMascara;
+        this.campo.mask(mascara, this.opcoesMascara);
         return this;
     }
 

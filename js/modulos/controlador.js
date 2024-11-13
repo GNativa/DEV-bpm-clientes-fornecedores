@@ -479,12 +479,12 @@ const Controlador = (() => {
         const carregaveis = $(campoDocumento.classeCarregaveis);
         const cnpj = campoDocumento.cleanVal();
 
-        if (cnpj.length <= 11 || campoRazaoSocial.val() !== "") {
+        if (cnpj === "" || cnpj.length < 14) {
+            carregaveis.val("");
             return;
         }
 
-        if (cnpj === "" || cnpj.length < 14) {
-            carregaveis.val("");
+        if (campoRazaoSocial.val() !== "") {
             return;
         }
 
@@ -527,7 +527,11 @@ const Controlador = (() => {
             campoComplemento.val(complemento);
             campoEmailContato.val(email);
             campoTelefone.val(telefone);
-            if (campoContatoAdicional !== null && campoContatoAdicional !== undefined) campoContatoAdicional.val(telefoneAdicional);
+
+            if (campoContatoAdicional !== null && campoContatoAdicional !== undefined) {
+                campoContatoAdicional.configurarMascara("(00) 0000-00009");
+                campoContatoAdicional.val(telefoneAdicional);
+            }
 
             carregaveis.filter("[required]").trigger("blur.obrigatorio");
         }).fail(function () {
