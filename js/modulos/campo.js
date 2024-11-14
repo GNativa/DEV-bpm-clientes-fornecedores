@@ -170,9 +170,9 @@ class Campo {
 
         const feedback = document.createElement("div");
         feedback.classList.add("feedback");
-        feedback.style.display = "none";
         this.coluna.appendChild(feedback);
         this.feedback = $(feedback);
+        this.feedback.hide();
 
         campo.classList.add(...classes);
         return $(campo);
@@ -195,7 +195,7 @@ class Campo {
     }
 
     definirFeedback(mensagem) {
-        this.feedback.val(mensagem);
+        this.feedback.text(mensagem);
         return this;
     }
 

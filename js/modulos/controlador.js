@@ -334,7 +334,7 @@ const Controlador = (() => {
                         && ((documentoCadastro !== "") && (documentoConta !== ""))
                         && (documentoCadastro.length !== documentoConta.length);
                 },
-                null,
+                "Insira o mesmo tipo de documento (CPF/CNPJ).",
                 [campos["documento"], campos["documentoConta"]],
                 [campos["documentoConta"]]
             ),
