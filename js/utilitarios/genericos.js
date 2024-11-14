@@ -1,7 +1,7 @@
 const Genericos = (() => {
-    const salvarArquivosEmString = (inputElement) => {
+    const salvarArquivosEmString = (campoInput) => {
         return new Promise((resolve, reject) => {
-            const arquivos = inputElement.files;
+            const arquivos = campoInput.files;
             const dadosArquivos = [];
 
             if (arquivos.length === 0) {
@@ -39,12 +39,12 @@ const Genericos = (() => {
     }
 
 
-    const carregarArquivosDeString = (stringUnica) => {
-        if (stringUnica === "") {
+    const carregarArquivosDeString = (string) => {
+        if (string === "") {
             return new DataTransfer().files;
         }
 
-        const dadosArquivos = JSON.parse(stringUnica); // Converte a string JSON de volta para o array de objetos
+        const dadosArquivos = JSON.parse(string); // Converte a string JSON de volta para o array de objetos
 
         const arquivos = dadosArquivos.map((arquivoData) => {
             const conteudo = arquivoData.conteudo.split(',')[1]; // Remove o prefixo data:mime/type;base64,

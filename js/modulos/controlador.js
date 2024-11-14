@@ -1,4 +1,7 @@
 const Controlador = (() => {
+    // Listas dos IDs dos campos que serão obrigatórios, bloqueados ou ocultos por etapa
+    // Formato:
+    // { "etapa1": ["campo1", "campo2, "campo3"], "etapa2": ["campo1", "campo2"] }
     const camposObrigatorios = {
         "solicitacao": ["documento", "razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "logradouro", "numero", "bairro",
             "formaPagamento", "documentosPessoaFisica", "comprovanteEndereco"],
@@ -36,17 +39,19 @@ const Controlador = (() => {
         "revisaoErros": ["retornoRegra", "nomeUsuario"]
     }
 
+    // Variáveis para uso na geração e validação do formulário
     let validador = new Validador();
-
     let etapa = null;
     let inicializado = false;
+
+    // Variáveis para uso em validações, consultas etc.
     let cadastroInapto = false;
 
-    let campos = {},
-        aprovacao = {},
-        secaoAprovacao,
-        dadosPrincipais = {},
-        secaoDadosPrincipais,
+    let campos = {},             // Contém todos os campos no formato { "id": campo }
+        aprovacao = {},          // Campos da seção de aprovação
+        secaoAprovacao,              // A própria seção de aprovação
+        dadosPrincipais = {},    // Campos da seção de dados principais
+        secaoDadosPrincipais,        // Etc.
         contaBancaria = {},
         secaoContaBancaria,
         detalhesDocumentos = {},
@@ -55,13 +60,15 @@ const Controlador = (() => {
         secaoControle,
         botaoEnviar;
 
+    // Interface da API do workflow (BPM) que lida com a inicialização, salvamento de dados e erros do formulário
+    // Função "_rollback" não implementada até o momento
     this.workflowCockpit = workflowCockpit({
         init: _init,
         onSubmit: _saveData,
         onError: _rollback,
     });
 
-    // Verificar se a inicialização está sendo feita corretamente
+    // Função de inicialização do formulário chamada pela API do workflow
     function _init(data, info) {
         inicializar();
         const { initialVariables } = data["loadContext"];
@@ -175,8 +182,8 @@ const Controlador = (() => {
         let dados = {};
 
         dados.observacoesAprovacao = campos["observacoesAprovacao"].val();
-        dados.documento = campos["documento"].cleanVal();
-        dados.cadastroComRestricao = campos["cadastroComRestricao"].campo.prop("checked");
+        dados.documento = campos["documento"].cleanVal(); // Valor do campo sem máscara
+        dados.cadastroComRestricao = campos["cadastroComRestricao"].campo.prop("checked"); // Estado do checkbox (marcado ou não marcado)
         dados.razaoSocial = campos["razaoSocial"].val();
         dados.nomeFantasia = campos["nomeFantasia"].val();
         dados.mercadoExterior = campos["mercadoExterior"].campo.prop("checked");
@@ -217,7 +224,7 @@ const Controlador = (() => {
         dados.observacoes = campos["observacoes"].val();
         dados.documentosPessoaFisica = await Genericos.salvarArquivosEmString(
             campos["documentosPessoaFisica"].obterElementoHtml()
-        );
+        ); // Salvamento de anexo na forma de uma string
         dados.comprovanteEndereco = await Genericos.salvarArquivosEmString(
             campos["comprovanteEndereco"].obterElementoHtml()
         );
@@ -242,9 +249,17 @@ const Controlador = (() => {
         }
 
         inicializado = true;
+
+        // Construção dos campos do formulário
         gerarFormulario();
+
+        // Reunião dos campos de todas as seções em um só "dicionário" (objeto com pares de chave-valor)
         campos = {...aprovacao, ...dadosPrincipais, ...contaBancaria, ...detalhesDocumentos, ...controle};
+
+        // Listagem dos IDs de todos os campos
         // listarCampos();
+
+        // Configuração de eventos, máscaras, validações, consultas, etc.
         definirEstadoInicial();
     }
 
@@ -263,6 +278,7 @@ const Controlador = (() => {
         configurarEtapas();
         configurarEventos();
 
+        // Opções de máscara
         const opcoesDocumento = {
             onKeyPress: function (documento, ev, el, op) {
                 const mascaras = ["000.000.000-000", "00.000.000/0000-00"];
@@ -284,6 +300,7 @@ const Controlador = (() => {
             clearIfNotMatch: true
         };
 
+        // Configuração das máscaras
         campos["documento"].configurarMascara("00.000.000/0000-00", opcoesDocumento);
         campos["cep"].configurarMascara("00000-000");
         campos["telefone"].configurarMascara("(00) 0000-0000");
@@ -294,9 +311,7 @@ const Controlador = (() => {
         campos["favCep"].configurarMascara("00000-000");
         campos["favTelefone"].configurarMascara("(00) 0000-0000");
 
-        campos["documento"].definirFeedback("A empresa está com restrição.");
-        campos["documentoConta"].definirFeedback("Insira o mesmo tipo de documento (CPF/CNPJ).");
-
+        // Lista de validações
         validador.validacoes = [
             new Validacao(() => {
                     return campos["documento"].cleanVal().length <= 11;
@@ -308,9 +323,23 @@ const Controlador = (() => {
                 null,
                 null,
                 null,
-                [campos["razaoSocial"], campos["nomeFantasia"], campos["cep"], campos["logradouro"],
+                [campos["razaoSocial"], campos["cep"], campos["logradouro"],
                     campos["numero"], campos["bairro"], campos["emailContato"], campos["telefone"]]
             ),
+
+            /*
+            new Validacao(() => {
+                    return nomeFantasia.length > 0;
+                },
+                null,
+                [campos["documento"], campos["nomeFantasia"]],
+                null,
+                null,
+                null,
+                [campos["nomeFantasia"]]
+            ),
+             */
+
             new Validacao(() => {
                     return campos["formaPagamento"].val() === "3";
                 },
@@ -363,7 +392,7 @@ const Controlador = (() => {
             new Validacao(() => {
                     return cadastroInapto && !campos["cadastroComRestricao"].campo.prop("checked");
                 },
-                null,
+                "A empresa está com restrição. Marque a caixa ao lado para prosseguir.",
                 [campos["documento"], campos["cadastroComRestricao"]],
                 [campos["documento"]]
             ),
@@ -383,6 +412,7 @@ const Controlador = (() => {
 
         validador.configurarValidacoes();
 
+        // Configuração das consultas por API
         const carregaveisCnpj = [campos["documento"], campos["razaoSocial"], campos["nomeFantasia"], campos["cep"],
             campos["estado"], campos["cidade"], campos["logradouro"], campos["numero"], campos["bairro"],
             campos["complemento"], campos["emailContato"], campos["telefone"], campos["contatoAdicional"]];
@@ -430,11 +460,15 @@ const Controlador = (() => {
         );
     }
 
+    // Configuração das etapas com base nos parâmetros da URL
+    // Ex.: https://gnativa.github.io/bpm-clientes-fornecedores/?etapa=solicitacao&
     const configurarEtapas = () => {
         const url = new URL(window.location.toLocaleString());
         const parametros = url.searchParams;
         etapa = parametros.get("etapa");
 
+        // Bloquear todos os campos caso o formulário seja acessado de modo avulso
+        // Ex.: consulta da solicitação na Central de Tarefas
         if (etapa === null || !(etapa in camposObrigatorios)) {
             for (const idCampo in campos) {
                 campos[idCampo].definirEdicao(false);
@@ -463,6 +497,7 @@ const Controlador = (() => {
         botaoEnviar.click(enviar);
     };
 
+    // Função usada para envios de teste
     const enviar = () => {
         validador.validarCampos();
 
@@ -639,17 +674,13 @@ const Controlador = (() => {
             new Campo("numero", "Número", "texto", 2),
             new Campo("bairro", "Bairro", "texto", 4),
             new Campo("complemento", "Complemento", "texto", 4),
-            new Campo(
-                "enderecoCorresp", "Endereço de correspondênia", "texto", 4
-            ),
+            new Campo("enderecoCorresp", "Endereço de correspondência", "texto", 4),
             new Campo("nomeContato", "Nome do contato", "texto", 4),
             new Campo("emailContato", "Email do contato", "email", 4),
             new Campo("emailAdicional", "Email adicional", "email", 4),
             new Campo("telefone", "Telefone", "texto", 2),
             new Campo("celular", "Celular", "texto", 2),
-            new Campo(
-                "contatoAdicional", "Telefone ou celular adicional", "texto", 2
-            ),
+            new Campo("contatoAdicional", "Telefone ou celular adicional", "texto", 2),
             new Campo("formaPagamento", "Forma de pagamento", "lista", 2)
                 .adicionarOpcoes([
                     new OpcaoLista("1", "1 - Boleto"),

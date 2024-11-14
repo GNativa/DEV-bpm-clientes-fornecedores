@@ -1,3 +1,10 @@
+:root {
+    --cor-texto: #3f4150;
+    --cor-borda-foco: rgba(102, 108, 131, 0.75);
+    --cor-obrigatorio: #4D5060FF;
+    --cor-titulo: #4d5060;
+}
+
 body, .form-select, input[type="file"] {
     font-family: Poppins, sans-serif;
     color: #3f4150;
@@ -59,7 +66,6 @@ select[required], input[type="file"][required] {
     display: none;
 }
  */
-
 
 .linha-titulo:not(:has(+ hr + div > div:not([style*="display: none"]))),
 .hr-titulo:not(:has(+ div > div:not([style*="display: none"]))) {
