@@ -351,7 +351,7 @@ class Campo {
             return this.campo.val();
         }
 
-        return this.campo.val(valor).trigger("input");
+        return this.campo.val(valor).trigger("input").trigger("change");
     }
 
     cleanVal() {

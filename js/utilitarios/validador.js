@@ -24,13 +24,13 @@ class Validador {
 
     validarCampos() {
         $(".campo")
-            .trigger("change.tornarObrigatorio")
+            .trigger("change")
             .filter("[required]:visible")
             .filter(function () {
                 return this.value === ""
             })
             .addClass("nao-preenchido")
-            .trigger("change.consistir");
+            .trigger("change");
     }
 
     validarCamposObrigatorios() {
@@ -47,7 +47,7 @@ class Validador {
             const campos = [...validacao.camposMonitorados];
 
             for (const campo of campos) {
-                campo.adicionarEvento("change.consistir", function() {
+                campo.adicionarEvento("change", function() {
                     for (const consistido of validacao.camposConsistidos) {
                         consistido.definirValidez(!validacao.ativa());
                         consistido.definirFeedback(validacao.feedback);
@@ -55,42 +55,37 @@ class Validador {
                     }
                 });
 
-                campo.adicionarEvento("change.tornarObrigatorio", function() {
+                campo.adicionarEvento("change", function() {
                     for (const obrigatorio of validacao.camposObrigatorios) {
                         obrigatorio.definirObrigatoriedade(validacao.ativa());
                     }
                 });
 
-                campo.adicionarEvento("change.esconder", function() {
+                campo.adicionarEvento("change", function() {
                     for (const escondido of validacao.camposEscondidos) {
                         escondido.definirVisibilidade(!validacao.ativa());
                     }
                 });
 
-                campo.adicionarEvento("change.desabilitar", function() {
+                campo.adicionarEvento("change", function() {
                     for (const desabilitado of validacao.camposDesabilitados) {
                         desabilitado.definirEdicao(!validacao.ativa());
                     }
                 });
 
-                campo.adicionarEvento("change.mostrar", function() {
+                campo.adicionarEvento("change", function() {
                     for (const escondido of validacao.camposMostrados) {
                         escondido.definirVisibilidade(validacao.ativa());
                     }
                 });
 
-                campo.adicionarEvento("change.habilitar", function() {
+                campo.adicionarEvento("change", function() {
                     for (const desabilitado of validacao.camposHabilitados) {
                         desabilitado.definirEdicao(validacao.ativa());
                     }
                 });
 
-                campo.campo.trigger("change.consistir");
-                campo.campo.trigger("change.tornarObrigatorio");
-                campo.campo.trigger("change.esconder");
-                campo.campo.trigger("change.desabilitar");
-                campo.campo.trigger("change.mostrar");
-                campo.campo.trigger("change.habilitar");
+                campo.campo.trigger("change");
             }
         }
     }
