@@ -51,6 +51,7 @@ class Campo {
         this.visibilidadeSobrescrita = false;
         this.editabilidadeSobrescrita = false;
 
+        this.consistenciaAtiva = null;
         this.feedback = null;
         this.links = null;
         this.classeCarregaveis = null;
@@ -193,6 +194,10 @@ class Campo {
     removerEvento(evento) {
         this.campo.off(evento);
         return this;
+    }
+
+    definirConsistenciaAtiva(validacao) {
+        this.consistenciaAtiva = validacao;
     }
 
     definirFeedback(mensagem) {

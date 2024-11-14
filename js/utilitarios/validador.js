@@ -1,6 +1,7 @@
 class Validacao {
-    constructor(ativa, feedback, camposMonitorados, camposConsistidos, camposObrigatorios, camposEscondidos, camposDesabilitados,
+    constructor(id, ativa, feedback, camposMonitorados, camposConsistidos, camposObrigatorios, camposEscondidos, camposDesabilitados,
                 camposMostrados, camposHabilitados) {
+        this.id = id;
         this.ativa = ativa;
         this.feedback = feedback;
         this.camposMonitorados = camposMonitorados ?? [];
@@ -49,8 +50,17 @@ class Validador {
             for (const campo of campos) {
                 campo.adicionarEvento("change", function() {
                     for (const consistido of validacao.camposConsistidos) {
-                        if (!validacao.ativa() && !consistido.valido) {
+                        if (consistido["consistenciaAtiva"] !== null && consistido["consistenciaAtiva"]["id"] !== validacao["id"]) {
                             continue;
+                        }
+
+                        if (validacao.ativa() && consistido["consistenciaAtiva"] === null) {
+                            consistido.definirConsistenciaAtiva(validacao);
+                        }
+                        else if (!validacao.ativa()
+                              && consistido["consistenciaAtiva"] !== null
+                              && consistido["consistenciaAtiva"]["id"] === validacao["id"]) {
+                            consistido.definirConsistenciaAtiva(null);
                         }
 
                         consistido.definirValidez(!validacao.ativa());

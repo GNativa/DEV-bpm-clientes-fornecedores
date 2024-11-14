@@ -313,7 +313,8 @@ const Controlador = (() => {
 
         // Lista de validações
         validador.validacoes = [
-            new Validacao(() => {
+            new Validacao("V001",
+                () => {
                     const documento = campos["documento"].cleanVal();
                     return (documento.length > 11 && documento.length < 14)
                         || (documento.length > 0 && documento.length < 11);
@@ -323,7 +324,8 @@ const Controlador = (() => {
                 [campos["documento"]],
             ),
 
-            new Validacao(() => {
+            new Validacao("V002",
+                () => {
                     return campos["documento"].cleanVal().length <= 11;
                 },
                 null,
@@ -337,7 +339,8 @@ const Controlador = (() => {
                     campos["numero"], campos["bairro"], campos["emailContato"], campos["telefone"]]
             ),
 
-            new Validacao(() => {
+            new Validacao("V003",
+                () => {
                     return campos["formaPagamento"].val() === "3";
                 },
                 null,
@@ -352,7 +355,8 @@ const Controlador = (() => {
                 [campos["documentoConta"]]
             ),
 
-            new Validacao(() => {
+            new Validacao("V004",
+                () => {
                     const documentoCadastro = campos["documento"].val();
                     const documentoConta = campos["documentoConta"].val();
 
@@ -365,7 +369,8 @@ const Controlador = (() => {
                 [campos["documentoConta"]]
             ),
 
-            new Validacao(() => {
+            new Validacao("V005",
+                () => {
                     const documentoCadastro = campos["documento"].val();
                     const documentoConta = campos["documentoConta"].val();
 
@@ -386,7 +391,8 @@ const Controlador = (() => {
                 [campos["favCep"]]
             ),
 
-            new Validacao(() => {
+            new Validacao("V006",
+                () => {
                     return cadastroInapto && !campos["cadastroComRestricao"].campo.prop("checked");
                 },
                 "A empresa está com restrição. Marque a caixa ao lado para prosseguir.",
@@ -394,7 +400,8 @@ const Controlador = (() => {
                 [campos["documento"]]
             ),
 
-            new Validacao(() => {
+            new Validacao("V007",
+                () => {
                     return cadastroInapto && campos["documento"].cleanVal().length === 14;
                 },
                 null,
