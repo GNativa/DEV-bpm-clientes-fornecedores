@@ -43,6 +43,7 @@ class Campo {
         this.obrigatorio = false;
         this.visivel = true;
         this.editavel = true;
+        this.valido = true;
 
         this.mascaraPadrao = "";
         this.opcoesMascara = {clearIfNotMatch: true};
@@ -274,7 +275,9 @@ class Campo {
     }
 
     definirValidez(valido) {
+        this.valido = valido;
         const campo = this.campo;
+
         campo.prop("aria-invalid", !valido);
 
         if (valido) {

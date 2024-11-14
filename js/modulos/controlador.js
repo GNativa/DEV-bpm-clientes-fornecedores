@@ -314,6 +314,16 @@ const Controlador = (() => {
         // Lista de validações
         validador.validacoes = [
             new Validacao(() => {
+                    const documento = campos["documento"].cleanVal();
+                    return (documento.length > 11 && documento.length < 14)
+                        || (documento.length > 0 && documento.length < 11);
+                },
+                "Insira um documento completo.",
+                [campos["documento"]],
+                [campos["documento"]],
+            ),
+
+            new Validacao(() => {
                     return campos["documento"].cleanVal().length <= 11;
                 },
                 null,
@@ -326,19 +336,6 @@ const Controlador = (() => {
                 [campos["razaoSocial"], campos["cep"], campos["logradouro"],
                     campos["numero"], campos["bairro"], campos["emailContato"], campos["telefone"]]
             ),
-
-            /*
-            new Validacao(() => {
-                    return nomeFantasia.length > 0;
-                },
-                null,
-                [campos["documento"], campos["nomeFantasia"]],
-                null,
-                null,
-                null,
-                [campos["nomeFantasia"]]
-            ),
-             */
 
             new Validacao(() => {
                     return campos["formaPagamento"].val() === "3";
@@ -398,7 +395,7 @@ const Controlador = (() => {
             ),
 
             new Validacao(() => {
-                    return cadastroInapto;
+                    return cadastroInapto && campos["documento"].cleanVal().length === 14;
                 },
                 null,
                 [campos["documento"]],

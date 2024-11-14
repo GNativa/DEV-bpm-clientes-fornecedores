@@ -49,6 +49,10 @@ class Validador {
             for (const campo of campos) {
                 campo.adicionarEvento("change", function() {
                     for (const consistido of validacao.camposConsistidos) {
+                        if (!validacao.ativa() && !consistido.valido) {
+                            continue;
+                        }
+
                         consistido.definirValidez(!validacao.ativa());
                         consistido.definirFeedback(validacao.feedback ?? "");
                         consistido.mostrarFeedback(validacao.ativa());
