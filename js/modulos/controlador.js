@@ -408,13 +408,13 @@ const Controlador = (() => {
 
         const carregaveisCnpjFav = [campos["documentoConta"], campos["titularConta"], campos["favNomeFantasia"], campos["favCep"], campos["favEstado"],
             campos["favCidade"], campos["favLogradouro"], campos["favBairro"], campos["favNumero"], campos["favComplemento"],
-            campos["favEmail"], campos["favTelefone"], null];
+            campos["favEmail"], campos["favTelefone"]];
 
         campos["documentoConta"].configurarConsulta(
-            carregaveisCnpj,
+            carregaveisCnpjFav,
             "carregavel-documento-conta",
             () => {
-                consultarCnpj(...carregaveisCnpjFav);
+                consultarCnpj(...carregaveisCnpjFav, null);
             }
         );
 
