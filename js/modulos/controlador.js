@@ -29,7 +29,7 @@ const Controlador = (() => {
             "favBairro", "favNumero", "favComplemento", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco", "retornoRegra"],
         "revisaoAprovacao": ["estado", "cidade", "observacoesAprovacao"],
         "revisaoErros": ["estado", "cidade", "observacoesAprovacao"]
-    }
+    };
     const camposOcultos = {
         "solicitacao": ["observacoesAprovacao", "retornoRegra", "nomeUsuario"],
         "aprovacaoInicial": ["retornoRegra", "nomeUsuario"],
@@ -37,17 +37,17 @@ const Controlador = (() => {
         "aprovacaoContasBancarias": ["retornoRegra", "nomeUsuario"],
         "revisaoAprovacao": ["retornoRegra", "nomeUsuario"],
         "revisaoErros": ["retornoRegra", "nomeUsuario"]
-    }
+    };
 
     // Variáveis para uso na geração e validação do formulário
     let validador = new Validador();
     let etapa = null;
     let inicializado = false;
 
-    // Variáveis para uso em validações, consultas etc.
-    let cadastroInapto = false;
+    // Variáveis para uso em validações, consultas, etc.
+    let cnpjInaptoCadastro = false;
 
-    let campos = {},             // Contém todos os campos no formato { "id": campo }
+    let campos = {},             // Contém todos os campos no formato { "id": Campo }
         aprovacao = {},          // Campos da seção de aprovação
         secaoAprovacao,              // A própria seção de aprovação
         dadosPrincipais = {},    // Campos da seção de dados principais
@@ -313,8 +313,7 @@ const Controlador = (() => {
 
         // Lista de validações
         validador.validacoes = [
-            new Validacao("V001",
-                () => {
+            new Validacao(() => {
                     const documento = campos["documento"].cleanVal();
                     return (documento.length > 11 && documento.length < 14)
                         || (documento.length > 0 && documento.length < 11);
@@ -324,8 +323,7 @@ const Controlador = (() => {
                 [campos["documento"]],
             ),
 
-            new Validacao("V002",
-                () => {
+            new Validacao(() => {
                     return campos["documento"].cleanVal().length <= 11;
                 },
                 null,
@@ -339,8 +337,7 @@ const Controlador = (() => {
                     campos["numero"], campos["bairro"], campos["emailContato"], campos["telefone"]]
             ),
 
-            new Validacao("V003",
-                () => {
+            new Validacao(() => {
                     return campos["formaPagamento"].val() === "3";
                 },
                 null,
@@ -355,8 +352,7 @@ const Controlador = (() => {
                 [campos["documentoConta"]]
             ),
 
-            new Validacao("V004",
-                () => {
+            new Validacao(() => {
                     const documentoCadastro = campos["documento"].val();
                     const documentoConta = campos["documentoConta"].val();
 
@@ -369,8 +365,7 @@ const Controlador = (() => {
                 [campos["documentoConta"]]
             ),
 
-            new Validacao("V005",
-                () => {
+            new Validacao(() => {
                     const documentoCadastro = campos["documento"].val();
                     const documentoConta = campos["documentoConta"].val();
 
@@ -391,18 +386,17 @@ const Controlador = (() => {
                 [campos["favCep"]]
             ),
 
-            new Validacao("V006",
-                () => {
-                    return cadastroInapto && !campos["cadastroComRestricao"].campo.prop("checked");
+            new Validacao(() => {
+                    return cnpjInaptoCadastro && !campos["cadastroComRestricao"].campo.prop("checked");
                 },
                 "A empresa está com restrição. Marque a caixa ao lado para prosseguir.",
                 [campos["documento"], campos["cadastroComRestricao"]],
                 [campos["documento"]]
             ),
 
-            new Validacao("V007",
-                () => {
-                    return cadastroInapto && campos["documento"].cleanVal().length === 14;
+            new Validacao(() => {
+                    console.log(cnpjInaptoCadastro && campos["documento"].cleanVal().length === 14);
+                    return cnpjInaptoCadastro && campos["documento"].cleanVal().length === 14;
                 },
                 null,
                 [campos["documento"]],
@@ -412,6 +406,39 @@ const Controlador = (() => {
                 null,
                 [campos["cadastroComRestricao"]]
             ),
+
+            new Validacao(() => {
+                    const documento = campos["documentoConta"].cleanVal();
+
+                    return campos["formaPagamento"].val() === 3
+                        && ((documento.length > 11 && documento.length < 14) || (documento.length > 0 && documento.length < 11));
+                },
+                "Insira um documento completo.",
+                [campos["documentoConta"]],
+                [campos["documentoConta"]],
+            ),
+
+            /*
+            new Validacao(() => {
+                    return cnpjInaptoConta && !campos["cadastroComRestricao"].campo.prop("checked");
+                },
+                "A empresa está com restrição. Marque a caixa ao lado para prosseguir.",
+                [campos["documento"], campos["cadastroComRestricao"]],
+                [campos["documento"]]
+            ),
+
+            new Validacao(() => {
+                    return cnpjInaptoCadastro && campos["documento"].cleanVal().length === 14;
+                },
+                null,
+                [campos["documento"]],
+                null,
+                [campos["cadastroComRestricao"]],
+                null,
+                null,
+                [campos["cadastroComRestricao"]]
+            ),
+             */
         ];
 
         validador.configurarValidacoes();
@@ -425,7 +452,7 @@ const Controlador = (() => {
             carregaveisCnpj,
             "carregavel-documento",
             () => {
-                consultarCnpj(...carregaveisCnpj);
+                consultarCnpj("cadastro", ...carregaveisCnpj);
             }
         );
 
@@ -448,7 +475,7 @@ const Controlador = (() => {
             carregaveisCnpjFav,
             "carregavel-documento-conta",
             () => {
-                consultarCnpj(...carregaveisCnpjFav, null);
+                consultarCnpj("contaBancaria", ...carregaveisCnpjFav, null);
             }
         );
 
@@ -466,6 +493,7 @@ const Controlador = (() => {
 
     // Configuração das etapas com base nos parâmetros da URL
     // Ex.: https://gnativa.github.io/bpm-clientes-fornecedores/?etapa=solicitacao&
+    // O & ao final é adicionado para considerar os parâmetros inseridos na URL pelo próprio Senior X
     const configurarEtapas = () => {
         const url = new URL(window.location.toLocaleString());
         const parametros = url.searchParams;
@@ -512,14 +540,20 @@ const Controlador = (() => {
         }
     };
 
-    const consultarCnpj = (campoDocumento, campoRazaoSocial, campoNomeFantasia, campoCep, campoEstado,
+    const consultarCnpj = (tipoConsulta, campoDocumento, campoRazaoSocial, campoNomeFantasia, campoCep, campoEstado,
                            campoCidade, campoLogradouro, campoNumero, campoBairro, campoComplemento, campoEmailContato,
                            campoTelefone, campoContatoAdicional) => {
         const carregaveis = $(campoDocumento.classeCarregaveis);
         const cnpj = campoDocumento.cleanVal();
 
         if (cnpj === "" || (cnpj.length < 14 && campoRazaoSocial.val() !== "")) {
-            carregaveis.val("");
+            if (tipoConsulta === "cadastro") {
+                cnpjInaptoCadastro = false;
+                campos["cadastroComRestricao"].campo.prop("checked", false);
+                campos["documento"].campo.trigger("change");
+            }
+
+            carregaveis.not(campoDocumento.campo).val("");
             return;
         }
 
@@ -532,27 +566,28 @@ const Controlador = (() => {
         $.getJSON(`https://publica.cnpj.ws/cnpj/${cnpj}`, function (dadosCnpj) {
             campoDocumento.finalizarCarregamento();
 
-            if ("status" in dadosCnpj && dadosCnpj["status"] === 400) {
-                alert("CNPJ não encontrado.");
-                return;
+            campos["cadastroComRestricao"].campo.prop("checked", false);
+
+            if (tipoConsulta === "cadastro") {
+                cnpjInaptoCadastro = dadosCnpj["estabelecimento"]["situacao_cadastral"].toLowerCase() !== "ativa";
+                campoDocumento.campo.trigger("change");
             }
 
-            cadastroInapto = dadosCnpj["estabelecimento"]["situacao_cadastral"].toLowerCase() !== "ativa";
             const razaoSocial = dadosCnpj["razao_social"];
-            const nomeFantasia = dadosCnpj["estabelecimento"]["nome_fantasia"] ? dadosCnpj["estabelecimento"]["nome_fantasia"] : "";
+            const nomeFantasia = dadosCnpj["estabelecimento"]["nome_fantasia"] ?? "";
             const cep = dadosCnpj["estabelecimento"]["cep"];
             const estado = dadosCnpj["estabelecimento"]["estado"]["sigla"];
             const cidade = dadosCnpj["estabelecimento"]["cidade"]["nome"];
             const logradouro = dadosCnpj["estabelecimento"]["tipo_logradouro"] + " " + dadosCnpj["estabelecimento"]["logradouro"];
             const numero = dadosCnpj["estabelecimento"]["numero"];
             const bairro = dadosCnpj["estabelecimento"]["bairro"];
-            const complemento = dadosCnpj["estabelecimento"]["complemento"] ? dadosCnpj["estabelecimento"]["complemento"] : "";
+            const complemento = dadosCnpj["estabelecimento"]["complemento"] ?? "";
             const email = dadosCnpj["estabelecimento"]["email"];
-            const ddd1 = dadosCnpj["estabelecimento"]["ddd1"] ? dadosCnpj["estabelecimento"]["ddd1"] : "";
-            const telefone1 = dadosCnpj["estabelecimento"]["telefone1"] ? dadosCnpj["estabelecimento"]["telefone1"] : "";
+            const ddd1 = dadosCnpj["estabelecimento"]["ddd1"] ?? "";
+            const telefone1 = dadosCnpj["estabelecimento"]["telefone1"] ?? "";
             const telefone = ddd1 + telefone1;
-            const ddd2 = dadosCnpj["estabelecimento"]["ddd2"] ? dadosCnpj["estabelecimento"]["ddd2"] : "";
-            const telefone2 = dadosCnpj["estabelecimento"]["telefone2"] ? dadosCnpj["estabelecimento"]["telefone2"] : "";
+            const ddd2 = dadosCnpj["estabelecimento"]["ddd2"] ?? "";
+            const telefone2 = dadosCnpj["estabelecimento"]["telefone2"] ?? "";
             const telefoneAdicional = ddd2 + telefone2;
 
             campoRazaoSocial.val(razaoSocial);
