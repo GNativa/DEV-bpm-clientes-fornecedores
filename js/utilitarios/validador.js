@@ -1,10 +1,9 @@
 class Validacao {
     static proximoId = 1;
 
-    constructor(ativa, feedback, camposMonitorados, camposConsistidos, camposObrigatorios, camposEscondidos, camposDesabilitados,
+    constructor(id, ativa, feedback, camposMonitorados, camposConsistidos, camposObrigatorios, camposEscondidos, camposDesabilitados,
                 camposMostrados, camposHabilitados) {
-        this.id = Validacao.proximoId;
-        Validacao.proximoId++;
+        this.id = id;
         this.ativa = ativa;
         this.feedback = feedback;
         this.camposMonitorados = camposMonitorados ?? [];
