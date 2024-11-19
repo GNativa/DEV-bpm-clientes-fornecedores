@@ -4,14 +4,14 @@ const Controlador = (() => {
     // { "etapa1": ["campo1", "campo2, "campo3"], "etapa2": ["campo1", "campo2"] }
     const camposObrigatorios = {
         "solicitacao": ["documento", "razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "logradouro", "numero", "bairro",
-            "formaPagamento", "documentosPessoaFisica", "comprovanteEndereco"],
+            "formaPagamento"],
         "aprovacaoInicial": ["observacoesAprovacao"],
         "execucao": [],
         "aprovacaoContasBancarias": ["observacoesAprovacao"],
         "revisaoAprovacao": ["documento", "razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "logradouro", "numero", "bairro",
-            "formaPagamento", "documentosPessoaFisica", "comprovanteEndereco"],
+            "formaPagamento"],
         "revisaoErros": ["documento", "razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "logradouro", "numero", "bairro",
-            "formaPagamento", "documentosPessoaFisica", "comprovanteEndereco"]
+            "formaPagamento"]
     };
     const camposBloqueados = {
         "solicitacao": ["estado", "cidade"],
@@ -395,7 +395,6 @@ const Controlador = (() => {
             ),
 
             new Validacao(() => {
-                    console.log(cnpjInaptoCadastro && campos["documento"].cleanVal().length === 14);
                     return cnpjInaptoCadastro && campos["documento"].cleanVal().length === 14;
                 },
                 null,
@@ -581,7 +580,7 @@ const Controlador = (() => {
             const logradouro = dadosCnpj["estabelecimento"]["tipo_logradouro"] + " " + dadosCnpj["estabelecimento"]["logradouro"];
             const numero = dadosCnpj["estabelecimento"]["numero"];
             const bairro = dadosCnpj["estabelecimento"]["bairro"];
-            const complemento = dadosCnpj["estabelecimento"]["complemento"] ?? "";
+            const complemento = dadosCnpj["estabelecimento"]["complemento"].replace("  ", " ") ?? "";
             const email = dadosCnpj["estabelecimento"]["email"];
             const ddd1 = dadosCnpj["estabelecimento"]["ddd1"] ?? "";
             const telefone1 = dadosCnpj["estabelecimento"]["telefone1"] ?? "";
