@@ -587,7 +587,7 @@ const Controlador = (() => {
             const logradouro = dadosCnpj["estabelecimento"]["tipo_logradouro"] + " " + dadosCnpj["estabelecimento"]["logradouro"];
             const numero = dadosCnpj["estabelecimento"]["numero"];
             const bairro = dadosCnpj["estabelecimento"]["bairro"];
-            const complemento = dadosCnpj["estabelecimento"]["complemento"].replace("  ", " ") ?? "";
+            const complemento = dadosCnpj["estabelecimento"]["complemento"] ?? "";
             const email = dadosCnpj["estabelecimento"]["email"];
             const ddd1 = dadosCnpj["estabelecimento"]["ddd1"] ?? "";
             const telefone1 = dadosCnpj["estabelecimento"]["telefone1"] ?? "";
