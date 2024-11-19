@@ -546,6 +546,10 @@ const Controlador = (() => {
         const carregaveis = $(campoDocumento.classeCarregaveis);
         const cnpj = campoDocumento.cleanVal();
 
+        if (cnpj.length === 14 && campoRazaoSocial.campo.prop("disabled", true) && campoRazaoSocial.val() !== "") {
+            return;
+        }
+
         if (cnpj === "" || (cnpj.length < 14 && campoRazaoSocial.val() !== "")) {
             if (tipoConsulta === "cadastro") {
                 cnpjInaptoCadastro = false;
@@ -609,10 +613,7 @@ const Controlador = (() => {
 
             carregaveis.filter("[required]").trigger("blur.obrigatorio");
         }).fail(function () {
-            campoDocumento.falharCarregamento();
-            setTimeout(function () {
-                alert("CNPJ não encontrado ou API indisponível para consulta.");
-            }, 1000);
+            campoDocumento.falharCarregamento("CNPJ não encontrado ou API indisponível para consulta.");
         });
     }
 
@@ -640,13 +641,13 @@ const Controlador = (() => {
         campoCep.iniciarCarregamento();
 
         $.getJSON(`https://viacep.com.br/ws/${cep}/json/?callback=?`, function(dadosCep) {
-            campoCep.finalizarCarregamento();
-
             if ("erro" in dadosCep) {
+                campoCep.falharCarregamento("CEP não encontrado ou API indisponível para consulta.");
                 carregaveisCep.val("");
-                alert("CEP não encontrado.");
                 return;
             }
+
+            campoCep.finalizarCarregamento();
 
             campoEstado.val(dadosCep["uf"])//.trigger("blur");
             campoCidade.val(dadosCep["localidade"])//.trigger("blur");
@@ -654,10 +655,7 @@ const Controlador = (() => {
             campoBairro.val(dadosCep["bairro"])//.trigger("blur");
             campoComplemento.val(dadosCep["complemento"])//.trigger("blur");
         }).fail(function () {
-            campoCep.falharCarregamento();
-            setTimeout(function () {
-                alert("CEP não encontrado ou API indisponível para consulta.");
-            }, 1000);
+            campoCep.falharCarregamento("CEP não encontrado ou API indisponível para consulta.");
         });
     }
 
@@ -673,15 +671,15 @@ const Controlador = (() => {
         secaoAprovacao.gerar();
 
         const camposDadosPrincipais = [
-            new Campo("documento", "CPF/CNPJ", "texto", 2),
             new Campo(
-                "cadastroComRestricao", "Solicitar aprovação de cadastro com restrição", "checkbox", 2,
-                "Marcar caso seja necessário realizar um cadastro com alguma restrição"
-            ),
-            new Campo(
-                "razaoSocial", "Razão social", "texto", 4,
+                "documento", "CPF/CNPJ", "texto", 2,
                 "Pressione TAB ou selecione outro campo para efetuar uma consulta com o documento informado"
             ),
+            new Campo(
+                "cadastroComRestricao", "Solicitar aprovação de cadastro com restrição",
+                "checkbox", 2, "Marcar caso seja necessário realizar um cadastro com alguma restrição"
+            ),
+            new Campo("razaoSocial", "Razão social", "texto", 4),
             new Campo("nomeFantasia", "Nome fantasia", "texto", 4),
             new Campo("mercadoExterior", "Mercado exterior", "checkbox", 2),
             new Campo("fornecedorIndustria", "É indústria", "checkbox", 2),
@@ -706,7 +704,10 @@ const Controlador = (() => {
                     new OpcaoLista("17", "17 - TIC - Telefonia"),
                 ]),
             new Campo("inscricaoEstadual", "Inscrição estadual", "texto", 2),
-            new Campo("cep", "CEP", "texto", 2),
+            new Campo(
+                "cep", "CEP", "texto", 2,
+                "Pressione TAB ou selecione outro campo para efetuar uma consulta com o documento informado"
+            ),
             new Campo("estado", "Estado", "texto", 2),
             new Campo("cidade", "Cidade", "texto", 4),
             new Campo("logradouro", "Logradouro", "texto", 4),
@@ -888,10 +889,16 @@ const Controlador = (() => {
                     new OpcaoLista("1", "1 - Conta corrente"),
                     new OpcaoLista("2", "2 - Conta poupança"),
                 ]),
-            new Campo("documentoConta", "CPF/CNPJ do titular", "texto", 2),
+            new Campo(
+                "documentoConta", "CPF/CNPJ do titular", "texto", 2,
+                "Pressione TAB ou selecione outro campo para efetuar uma consulta com o documento informado"
+            ),
             new Campo("titularConta", "Titular da conta", "texto", 4),
             new Campo("favNomeFantasia", "Nome fantasia", "texto", 4),
-            new Campo("favCep", "CEP", "texto", 2),
+            new Campo(
+                "favCep", "CEP", "texto", 2,
+                "Pressione TAB ou selecione outro campo para efetuar uma consulta com o documento informado"
+            ),
             new Campo("favEstado", "Estado", "texto", 2),
             new Campo("favCidade", "Cidade", "texto", 4),
             new Campo("favLogradouro", "Logradouro", "texto", 4),

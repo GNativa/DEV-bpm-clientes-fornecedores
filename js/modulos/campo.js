@@ -345,9 +345,16 @@ class Campo {
         carregaveisVisiveis.addClass("carregado");
     }
 
-    falharCarregamento() {
+    falharCarregamento(mensagem) {
+        const campo = this.campo;
         this.campo.removeClass("carregando");
         this.campo.addClass("carregado-falha");
+
+        const duracaoAnimacao = Number(campo.css("animation-duration").replace("s", "")) * 1000;
+
+        setTimeout(function () {
+            alert(mensagem);
+        }, duracaoAnimacao);
     }
 
     obterElementoHtml() {
