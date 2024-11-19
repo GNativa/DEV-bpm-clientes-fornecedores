@@ -1,7 +1,7 @@
 const Controlador = (() => {
     // Listas dos IDs dos campos que serão obrigatórios, bloqueados ou ocultos por etapa
     // Formato:
-    // {"etapa1": ["campo1", "campo2, "campo3"], "etapa2": ["campo1", "campo2"]}
+    // { "etapa1": ["campo1", "campo2, "campo3"], "etapa2": ["campo1", "campo2"] }
     const camposObrigatorios = {
         "solicitacao": ["documento", "razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "logradouro", "numero", "bairro",
             "formaPagamento"],
@@ -47,7 +47,7 @@ const Controlador = (() => {
     // Variáveis para uso em validações, consultas, etc.
     let cnpjInaptoCadastro = false;
 
-    let campos = {},             // Contém todos os campos no formato {"id": Campo}
+    let campos = {},             // Contém todos os campos no formato { "id": Campo }
         aprovacao = {},          // Campos da seção de aprovação
         secaoAprovacao,              // A própria seção de aprovação
         dadosPrincipais = {},    // Campos da seção de dados principais
@@ -173,17 +173,14 @@ const Controlador = (() => {
     async function _saveData(data, info) {
         validador.validarCampos();
 
-        /*
         if (!validador.formularioValido()) {
             const mensagem = "Dados inválidos. Corrija as informações preenchidas no formulário e preencha todos os campos obrigatórios para prosseguir.";
             alert(mensagem);
             throw new Error(mensagem);
         }
-         */
 
         let dados = {};
 
-        /*
         dados.observacoesAprovacao = campos["observacoesAprovacao"].val();
         dados.documento = campos["documento"].cleanVal(); // Valor do campo sem máscara
         dados.cadastroComRestricao = campos["cadastroComRestricao"].campo.prop("checked"); // Estado do checkbox (marcado ou não marcado)
@@ -236,7 +233,6 @@ const Controlador = (() => {
         );
         dados.nomeUsuario = campos["nomeUsuario"].val();
         dados.retornoRegra = campos["retornoRegra"].val();
-         */
 
         return {
             formData: dados,
@@ -431,15 +427,15 @@ const Controlador = (() => {
             ),
 
             new Validacao(() => {
-                    return cnpjInaptoConta && campos["documento"].cleanVal().length === 14;
+                    return cnpjInaptoCadastro && campos["documento"].cleanVal().length === 14;
                 },
                 null,
-                [campos["documentoTitular"]],
+                [campos["documento"]],
                 null,
-                [campos["cadastroComRestricaoTitular"]],
+                [campos["cadastroComRestricao"]],
                 null,
                 null,
-                [campos["cadastroComRestricaoTitular"]]
+                [campos["cadastroComRestricao"]]
             ),
              */
         ];
