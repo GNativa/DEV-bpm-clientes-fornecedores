@@ -234,6 +234,7 @@ const Controlador = (() => {
         dados.nomeUsuario = campos["nomeUsuario"].val();
         dados.retornoRegra = campos["retornoRegra"].val();
 
+        console.log(dados);
         return {
             formData: dados,
         };
