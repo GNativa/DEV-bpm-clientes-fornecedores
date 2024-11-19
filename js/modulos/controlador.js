@@ -222,6 +222,12 @@ const Controlador = (() => {
         dados.favEmail = campos["favEmail"].val();
         dados.favTelefone = campos["favTelefone"].cleanVal();
         dados.observacoes = campos["observacoes"].val();
+
+        dados.documentosPessoaFisica = "";
+        dados.comprovanteEndereco = "";
+        dados.comprovanteContaBancaria = "";
+
+        /*
         dados.documentosPessoaFisica = await Genericos.salvarArquivosEmString(
             campos["documentosPessoaFisica"].obterElementoHtml()
         ); // Salvamento de anexo na forma de uma string
@@ -231,6 +237,7 @@ const Controlador = (() => {
         dados.comprovanteContaBancaria = await Genericos.salvarArquivosEmString(
             campos["comprovanteContaBancaria"].obterElementoHtml()
         );
+         */
         dados.nomeUsuario = campos["nomeUsuario"].val();
         dados.retornoRegra = campos["retornoRegra"].val();
 
