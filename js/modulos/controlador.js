@@ -1,7 +1,7 @@
 const Controlador = (() => {
     // Listas dos IDs dos campos que serão obrigatórios, bloqueados ou ocultos por etapa
     // Formato:
-    // { "etapa1": ["campo1", "campo2, "campo3"], "etapa2": ["campo1", "campo2"] }
+    // {"etapa1": ["campo1", "campo2, "campo3"], "etapa2": ["campo1", "campo2"]}
     const camposObrigatorios = {
         "solicitacao": ["documento", "razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "logradouro", "numero", "bairro",
             "formaPagamento"],
@@ -47,7 +47,7 @@ const Controlador = (() => {
     // Variáveis para uso em validações, consultas, etc.
     let cnpjInaptoCadastro = false;
 
-    let campos = {},             // Contém todos os campos no formato { "id": Campo }
+    let campos = {},             // Contém todos os campos no formato {"id": Campo}
         aprovacao = {},          // Campos da seção de aprovação
         secaoAprovacao,              // A própria seção de aprovação
         dadosPrincipais = {},    // Campos da seção de dados principais
@@ -639,25 +639,69 @@ const Controlador = (() => {
             return;
         }
 
+        let mensagem = "CEP não encontrado ou API indisponível para consulta.";
         campoCep.iniciarCarregamento();
+        consultarViaCep();
 
-        $.getJSON(`https://viacep.com.br/ws/${cep}/json/?callback=?`, function(dadosCep) {
-            if ("erro" in dadosCep) {
-                campoCep.falharCarregamento("CEP não encontrado ou API indisponível para consulta.");
-                carregaveisCep.val("");
-                return;
-            }
+        function consultarViaCep() {
+            const url = `https://viacep.com.br/ws/${cep}/json/?callback=?`;
+            const log = "Falha na consulta por CEP no ViaCEP. Tentando consultar pela República Virtual.";
 
-            campoCep.finalizarCarregamento();
+            $.getJSON(url, function(dadosCep) {
+                if ("erro" in dadosCep) {
+                    console.log(log);
+                    consultarRepublicaVirtual();
+                    return;
+                }
 
-            campoEstado.val(dadosCep["uf"])//.trigger("blur");
-            campoCidade.val(dadosCep["localidade"])//.trigger("blur");
-            campoLogradouro.val(dadosCep["logradouro"])//.trigger("blur");
-            campoBairro.val(dadosCep["bairro"])//.trigger("blur");
-            campoComplemento.val(dadosCep["complemento"])//.trigger("blur");
-        }).fail(function () {
-            campoCep.falharCarregamento("CEP não encontrado ou API indisponível para consulta.");
-        });
+                campoCep.finalizarCarregamento();
+
+                const estado = dadosCep["uf"];
+                const cidade = dadosCep["localidade"];
+                const logradouro = dadosCep["logradouro"];
+                const bairro = dadosCep["bairro"];
+                const complemento = dadosCep["complemento"];
+
+                campoEstado.val(estado)//.trigger("blur");
+                campoCidade.val(cidade)//.trigger("blur");
+                campoLogradouro.val(logradouro)//.trigger("blur");
+                campoBairro.val(bairro)//.trigger("blur");
+                campoComplemento.val(complemento)//.trigger("blur");
+            }).fail(function () {
+                console.log(log);
+                consultarRepublicaVirtual();
+            });
+        }
+
+        function consultarRepublicaVirtual() {
+            const url = `http://cep.republicavirtual.com.br/web_cep.php?cep=${cep}&formato=json`;
+            const log = "Falha na consulta de CEP na República Virtual.";
+
+            $.getJSON(url, function(dadosCep) {
+                if (dadosCep["resultado"] === "0") {
+                    console.log(log);
+                    campoCep.falharCarregamento(mensagem);
+                    return;
+                }
+
+                const estado = dadosCep["uf"];
+                const cidade = dadosCep["cidade"];
+                const tipoLogradouro = dadosCep["tipo_logradouro"];
+                const logradouro = (tipoLogradouro === "" ? "" : (tipoLogradouro + " ")) + dadosCep["logradouro"];
+                const bairro = dadosCep["bairro"];
+
+                campoCep.finalizarCarregamento();
+
+                campoEstado.val(estado)//.trigger("blur");
+                campoCidade.val(cidade)//.trigger("blur");
+                campoLogradouro.val(logradouro)//.trigger("blur");
+                campoBairro.val(bairro)//.trigger("blur");
+
+            }).fail(function () {
+                console.log(log);
+                campoCep.falharCarregamento(mensagem);
+            });
+        }
     }
 
     const gerarFormulario = () => {
