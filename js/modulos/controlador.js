@@ -468,7 +468,7 @@ const Controlador = (() => {
         );
 
         const carregaveisCnpjFav = [campos["documentoConta"], campos["titularConta"], campos["favNomeFantasia"], campos["favCep"], campos["favEstado"],
-            campos["favCidade"], campos["favLogradouro"], campos["favBairro"], campos["favNumero"], campos["favComplemento"],
+            campos["favCidade"], campos["favLogradouro"], campos["favNumero"], campos["favBairro"], campos["favComplemento"],
             campos["favEmail"], campos["favTelefone"]];
 
         campos["documentoConta"].configurarConsulta(
@@ -582,7 +582,8 @@ const Controlador = (() => {
             const cep = dadosCnpj["estabelecimento"]["cep"];
             const estado = dadosCnpj["estabelecimento"]["estado"]["sigla"];
             const cidade = dadosCnpj["estabelecimento"]["cidade"]["nome"];
-            const logradouro = dadosCnpj["estabelecimento"]["tipo_logradouro"] + " " + dadosCnpj["estabelecimento"]["logradouro"];
+            const tipoLogradouro = dadosCnpj["estabelecimento"]["tipo_logradouro"] ?? "";
+            const logradouro = (tipoLogradouro !== "" ? (tipoLogradouro + " ") : "") + dadosCnpj["estabelecimento"]["logradouro"];
             const numero = dadosCnpj["estabelecimento"]["numero"];
             const bairro = dadosCnpj["estabelecimento"]["bairro"];
             const complemento = dadosCnpj["estabelecimento"]["complemento"] ?? "";
@@ -903,7 +904,7 @@ const Controlador = (() => {
             new Campo("favCidade", "Cidade", "texto", 4),
             new Campo("favLogradouro", "Logradouro", "texto", 4),
             new Campo("favBairro", "Bairro", "texto", 4),
-            new Campo("favNumero", "Estado", "texto", 2),
+            new Campo("favNumero", "Número", "texto", 2),
             new Campo("favComplemento", "Complemento", "texto", 4),
             new Campo("favEmail", "E-mail", "email", 4),
             new Campo("favTelefone", "Telefone ou celular", "texto", 2),
