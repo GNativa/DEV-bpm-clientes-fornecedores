@@ -707,7 +707,7 @@ const Controlador = (() => {
             new Campo("inscricaoEstadual", "Inscrição estadual", "texto", 2),
             new Campo(
                 "cep", "CEP", "texto", 2,
-                "Pressione TAB ou selecione outro campo para efetuar uma consulta com o documento informado"
+                "Pressione TAB ou selecione outro campo para efetuar uma consulta com o CEP informado"
             ),
             new Campo("estado", "Estado", "texto", 2),
             new Campo("cidade", "Cidade", "texto", 4),
@@ -898,7 +898,7 @@ const Controlador = (() => {
             new Campo("favNomeFantasia", "Nome fantasia", "texto", 4),
             new Campo(
                 "favCep", "CEP", "texto", 2,
-                "Pressione TAB ou selecione outro campo para efetuar uma consulta com o documento informado"
+                "Pressione TAB ou selecione outro campo para efetuar uma consulta com o CEP informado"
             ),
             new Campo("favEstado", "Estado", "texto", 2),
             new Campo("favCidade", "Cidade", "texto", 4),
