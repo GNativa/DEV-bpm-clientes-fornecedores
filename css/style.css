@@ -23,6 +23,10 @@ body, .form-select, input[type="file"] {
 }
  */
 
+.informativo:hover {
+    color: #2b2e37;
+}
+
 .feedback {
     color: red;
     font-weight: bold;

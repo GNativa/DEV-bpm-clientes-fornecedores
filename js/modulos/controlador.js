@@ -331,8 +331,8 @@ const Controlador = (() => {
                 null,
                 null,
                 null,
-                [campos["razaoSocial"], campos["cep"], campos["logradouro"],
-                    campos["numero"], campos["bairro"], campos["emailContato"], campos["telefone"]]
+                [campos["razaoSocial"], campos["cep"], campos["estado"], campos["cidade"],
+                    campos["logradouro"], campos["numero"], campos["bairro"], campos["emailContato"], campos["telefone"]]
             ),
 
             new Validacao(() => {

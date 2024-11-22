@@ -103,7 +103,7 @@ class Campo {
 
         if (dica !== null) {
             const icone = document.createElement("i");
-            icone.classList.add("bi", "bi-info-circle-fill", "me-2", "pe-auto");
+            icone.classList.add("bi", "bi-info-circle-fill", "me-2", "pe-auto", "informativo");
             icone.dataset.bsToggle = "tooltip";
             icone.dataset.bsPlacement = "top";
             icone.title = dica;
