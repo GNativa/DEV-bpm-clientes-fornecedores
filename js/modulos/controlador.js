@@ -3,18 +3,16 @@ const Controlador = (() => {
     // Formato:
     // {"etapa1": ["campo1", "campo2, "campo3"], "etapa2": ["campo1", "campo2"]}
     const camposObrigatorios = {
-        "solicitacao": ["documento", "razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "logradouro", "numero", "bairro",
+        "solicitacao": ["documento", "razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "estado", "cidade", "logradouro", "numero", "bairro",
             "formaPagamento"],
         "aprovacaoInicial": ["observacoesAprovacao"],
         "execucao": [],
-        "aprovacaoContasBancarias": ["observacoesAprovacao"],
-        "revisaoAprovacao": ["documento", "razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "logradouro", "numero", "bairro",
+        "aprovacaoFinanceiro": ["observacoesAprovacao"],
+        "revisao": ["documento", "razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "estado", "cidade", "logradouro", "numero", "bairro",
             "formaPagamento"],
-        "revisaoErros": ["documento", "razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "logradouro", "numero", "bairro",
-            "formaPagamento"]
     };
     const camposBloqueados = {
-        "solicitacao": ["estado", "cidade"],
+        "solicitacao": [],
         "aprovacaoInicial": ["documento", "cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
             "ramoAtividade", "inscricaoEstadual", "cep", "estado", "cidade", "logradouro", "numero", "bairro", "complemento", "enderecoCorresp",
             "nomeContato", "emailContato", "emailAdicional", "telefone", "celular", "contatoAdicional", "formaPagamento", "banco", "agenciaDigito",
@@ -22,21 +20,19 @@ const Controlador = (() => {
             "favBairro", "favNumero", "favComplemento", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco",
             "comprovanteContaBancaria", "retornoRegra"],
         "execucao": [],
-        "aprovacaoContasBancarias": ["documento", "cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
+        "aprovacaoFinanceiro": ["documento", "cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
             "ramoAtividade", "inscricaoEstadual", "cep", "estado", "cidade", "logradouro", "numero", "bairro", "complemento", "enderecoCorresp",
             "nomeContato", "emailContato", "emailAdicional", "telefone", "celular", "contatoAdicional", "formaPagamento", "banco", "agenciaDigito",
             "contaDigito", "tipoConta", "documentoConta", "titularConta", "favNomeFantasia", "favCep", "favEstado", "favCidade", "favLogradouro",
             "favBairro", "favNumero", "favComplemento", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco", "retornoRegra"],
-        "revisaoAprovacao": ["estado", "cidade", "observacoesAprovacao"],
-        "revisaoErros": ["estado", "cidade", "observacoesAprovacao"]
+        "revisao": ["observacoesAprovacao"]
     };
     const camposOcultos = {
         "solicitacao": ["observacoesAprovacao", "retornoRegra", "nomeUsuario"],
         "aprovacaoInicial": ["retornoRegra", "nomeUsuario"],
         "execucao": [],
-        "aprovacaoContasBancarias": ["retornoRegra", "nomeUsuario"],
-        "revisaoAprovacao": ["retornoRegra", "nomeUsuario"],
-        "revisaoErros": ["retornoRegra", "nomeUsuario"]
+        "aprovacaoFinanceiro": ["retornoRegra", "nomeUsuario"],
+        "revisao": ["retornoRegra", "nomeUsuario"]
     };
 
     // Variáveis para uso na geração e validação do formulário
@@ -645,12 +641,12 @@ const Controlador = (() => {
 
         function consultarViaCep() {
             const url = `https://viacep.com.br/ws/${cep}/json/?callback=?`;
-            const log = "Falha na consulta por CEP no ViaCEP. Tentando consultar pela República Virtual.";
+            // const log = "Falha na consulta por CEP no ViaCEP. Tentando consultar pela República Virtual.";
+
 
             $.getJSON(url, function(dadosCep) {
                 if ("erro" in dadosCep) {
-                    console.log(log);
-                    consultarRepublicaVirtual();
+                    campoCep.falharCarregamento(mensagem);
                     return;
                 }
 
@@ -668,11 +664,11 @@ const Controlador = (() => {
                 campoBairro.val(bairro)//.trigger("blur");
                 campoComplemento.val(complemento)//.trigger("blur");
             }).fail(function () {
-                console.log(log);
-                consultarRepublicaVirtual();
+                campoCep.falharCarregamento(mensagem);
             });
         }
 
+        /*
         function consultarRepublicaVirtual() {
             const url = `http://cep.republicavirtual.com.br/web_cep.php?cep=${cep}&formato=json`;
             const log = "Falha na consulta de CEP na República Virtual.";
@@ -702,6 +698,8 @@ const Controlador = (() => {
                 campoCep.falharCarregamento(mensagem);
             });
         }
+
+         */
     }
 
     const gerarFormulario = () => {
@@ -714,6 +712,36 @@ const Controlador = (() => {
         aprovacao = obterDicionario("id", camposAprovacao);
         secaoAprovacao = new Secao("aprovacao", "Aprovação", camposAprovacao);
         secaoAprovacao.gerar();
+
+        const listaEstados = [
+            new OpcaoLista("AC", "AC"),
+            new OpcaoLista("AL", "AL"),
+            new OpcaoLista("AM", "AM"),
+            new OpcaoLista("AP", "AP"),
+            new OpcaoLista("BA", "BA"),
+            new OpcaoLista("CE", "CE"),
+            new OpcaoLista("DF", "DF"),
+            new OpcaoLista("ES", "ES"),
+            new OpcaoLista("GO", "GO"),
+            new OpcaoLista("MA", "MA"),
+            new OpcaoLista("MG", "MG"),
+            new OpcaoLista("MS", "MS"),
+            new OpcaoLista("MT", "MT"),
+            new OpcaoLista("PA", "PA"),
+            new OpcaoLista("PB", "PB"),
+            new OpcaoLista("PE", "PE"),
+            new OpcaoLista("PI", "PI"),
+            new OpcaoLista("PR", "PR"),
+            new OpcaoLista("RJ", "RJ"),
+            new OpcaoLista("RN", "RN"),
+            new OpcaoLista("RO", "RO"),
+            new OpcaoLista("RR", "RR"),
+            new OpcaoLista("RS", "RS"),
+            new OpcaoLista("SC", "SC"),
+            new OpcaoLista("SE", "SE"),
+            new OpcaoLista("SP", "SP"),
+            new OpcaoLista("TO", "TO"),
+        ];
 
         const camposDadosPrincipais = [
             new Campo(
@@ -753,7 +781,8 @@ const Controlador = (() => {
                 "cep", "CEP", "texto", 2,
                 "Pressione TAB ou selecione outro campo para efetuar uma consulta com o CEP informado"
             ),
-            new Campo("estado", "Estado", "texto", 2),
+            new Campo("estado", "Estado", "lista", 2)
+                .adicionarOpcoes(listaEstados),
             new Campo("cidade", "Cidade", "texto", 4),
             new Campo("logradouro", "Logradouro", "texto", 4),
             new Campo("numero", "Número", "texto", 2),
@@ -944,7 +973,8 @@ const Controlador = (() => {
                 "favCep", "CEP", "texto", 2,
                 "Pressione TAB ou selecione outro campo para efetuar uma consulta com o CEP informado"
             ),
-            new Campo("favEstado", "Estado", "texto", 2),
+            new Campo("favEstado", "Estado", "lista", 2)
+                .adicionarOpcoes(listaEstados),
             new Campo("favCidade", "Cidade", "texto", 4),
             new Campo("favLogradouro", "Logradouro", "texto", 4),
             new Campo("favBairro", "Bairro", "texto", 4),
@@ -974,11 +1004,11 @@ const Controlador = (() => {
         
         const camposControle = [
             new Campo(
-              "nomeUsuario", "Usuário solicitante", "texto", "2"
-            ),
-            new Campo(
                 "retornoRegra", "Retorno da regra", "area-texto", "12",
                 "Retorno da regra de integração do ERP que fará o cadastro no sistema.", 5
+            ),
+            new Campo(
+                "nomeUsuario", "Usuário solicitante", "texto", "2"
             ),
         ];
 
