@@ -1,4 +1,4 @@
-const Genericos = (() => {
+const Utilitario = (() => {
     const salvarArquivosEmString = (campoInput) => {
         return new Promise((resolve, reject) => {
             const arquivos = campoInput.files;

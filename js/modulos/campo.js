@@ -48,6 +48,7 @@ class Campo {
         this.mascaraPadrao = "";
         this.opcoesMascara = {clearIfNotMatch: true};
 
+        this.obrigatoriedadeSobrescrita = false;
         this.visibilidadeSobrescrita = false;
         this.editabilidadeSobrescrita = false;
 
@@ -100,13 +101,14 @@ class Campo {
         campo.id = id;
         campo.name = id;
         campo.placeholder = rotulo;
+        campo.title = rotulo;
 
         if (dica !== null) {
             const icone = document.createElement("i");
             icone.classList.add("bi", "bi-info-circle-fill", "me-2", "pe-auto", "informativo");
             icone.dataset.bsToggle = "tooltip";
             icone.dataset.bsPlacement = "top";
-            icone.title = dica;
+            icone.dataset.bsTitle = dica;
             label.appendChild(icone);
         }
 
@@ -182,7 +184,26 @@ class Campo {
         this.feedback.hide();
 
         campo.classList.add(...classes);
-        return $(campo);
+
+        const elementoJquery = $(campo);
+
+        elementoJquery.on("change", function() {
+            const elemento = $(this);
+
+            if (elemento.val() === "") {
+                elemento.prop("title", `${rotulo}`);
+                return;
+            }
+
+            if (elemento.prop("type") === "checkbox") {
+                elemento.prop("title", `${rotulo}: ${elemento.prop("checked") ? "Sim" : "Não"}`);
+            }
+            else {
+                elemento.prop("title", `${rotulo}: ${elemento.val()}`);
+            }
+        });
+
+        return elementoJquery;
     }
 
     configurarMascara(mascara, opcoes) {
@@ -223,7 +244,23 @@ class Campo {
         return this;
     }
 
+    sobrescreverObrigatoriedade(sobrescrever) {
+        this.obrigatoriedadeSobrescrita = sobrescrever;
+    }
+
+    sobrescreverEditabilidade(sobrescrever) {
+        this.editabilidadeSobrescrita = sobrescrever;
+    }
+
+    sobrescreverVisibilidade(sobrescrever) {
+        this.visibilidadeSobrescrita = sobrescrever;
+    }
+
     definirObrigatoriedade(obrigatorio) {
+        if (this.obrigatoriedadeSobrescrita) {
+            return this;
+        }
+
         const campo = this.campo;
         this.obrigatorio = obrigatorio;
         campo.prop("aria-required", obrigatorio);
@@ -247,14 +284,6 @@ class Campo {
         }
 
         return this;
-    }
-
-    sobrescreverEditabilidade(editabilidade) {
-        this.editabilidadeSobrescrita = editabilidade;
-    }
-
-    sobrescreverVisibilidade(visibilidade) {
-        this.visibilidadeSobrescrita = visibilidade;
     }
 
     definirVisibilidade(visivel) {
@@ -350,16 +379,9 @@ class Campo {
         carregaveisVisiveis.addClass("carregado");
     }
 
-    falharCarregamento(mensagem) {
-        const campo = this.campo;
+    falharCarregamento() {
         this.campo.removeClass("carregando");
         this.campo.addClass("carregado-falha");
-
-        const duracaoAnimacao = Number(campo.css("animation-duration").replace("s", "")) * 1000;
-
-        setTimeout(function () {
-            alert(mensagem);
-        }, duracaoAnimacao);
     }
 
     obterElementoHtml() {

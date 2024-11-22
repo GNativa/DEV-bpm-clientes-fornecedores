@@ -3,6 +3,54 @@
     --cor-borda-foco: rgba(102, 108, 131, 0.75);
     --cor-obrigatorio: #4D5060FF;
     --cor-titulo: #4d5060;
+    --cor-texto-desabilitado: #6d757d;
+}
+
+.sucesso {
+    color: #13cd13;
+}
+
+.info {
+    color: #006fff;
+}
+
+.aviso {
+    color: #ffc400;
+}
+
+.erro {
+    color: #ff0000;
+}
+
+/*
+[readonly] {
+    background-color: #e7eaed;
+    --bs-border-color: #dce0e4;
+}
+
+[readonly] + label, label:has(+ [readonly]) {
+    color: #6d757d;
+}
+ */
+
+select[disabled] {
+    color: var(--cor-texto-desabilitado);
+}
+
+label:has(+ input[disabled]) {
+    color: var(--cor-texto-desabilitado);
+}
+
+input[disabled][type="file"] {
+    color: var(--cor-texto-desabilitado);
+}
+
+input[disabled][type="file"]::file-selector-button {
+    color: var(--cor-texto-desabilitado);
+}
+
+.form-control {
+    overflow-x: auto;
 }
 
 body, .form-select, input[type="file"] {
@@ -10,7 +58,7 @@ body, .form-select, input[type="file"] {
     color: var(--cor-texto);
 }
 
-.form-control:focus, .form-check-input:focus, .form-select:focus {
+.form-control:focus, .form-check-input:focus, .form-select:focus, .btn-close:focus {
     border-color: var(--cor-borda-foco);
     box-shadow: 0 0 0 0.25rem var(--cor-borda-foco);
 }
@@ -28,7 +76,7 @@ body, .form-select, input[type="file"] {
 }
 
 .feedback {
-    color: red;
+    color: #ff0000;
     font-weight: bold;
     font-size: 0.85em;
 }
@@ -74,13 +122,22 @@ select[required], input[type="file"][required] {
     font-size: 1.5em;
     font-weight: bold;
     font-style: italic;
-    color: #4d5060;
+    color: var(--cor-titulo);
 }
 
 .titulo-m {
     font-size: 1.25em;
     font-weight: bold;
-    color: #4d5060;
+    color: var(--cor-titulo);
+}
+
+.titulo-p {
+    font-size: 1.2em;
+    color: var(--cor-titulo);
+}
+
+.texto-mensagem {
+    font-size: 1.15em;
 }
 
 textarea {

@@ -152,28 +152,39 @@ const Controlador = (() => {
                     campos["retornoRegra"].val(map.get("retornoRegra") || "");
                     campos["documentosPessoaFisica"].campo.prop(
                         "files",
-                        Genericos.carregarArquivosDeString(map.get("documentosPessoaFisica") || "")
+                        Utilitario.carregarArquivosDeString(map.get("documentosPessoaFisica") || "")
                     ).trigger("change");
                     campos["comprovanteEndereco"].campo.prop(
                         "files",
-                        Genericos.carregarArquivosDeString(map.get("comprovanteEndereco") || "")
+                        Utilitario.carregarArquivosDeString(map.get("comprovanteEndereco") || "")
                     ).trigger("change");
                     campos["comprovanteContaBancaria"].campo.prop(
                         "files",
-                        Genericos.carregarArquivosDeString(map.get("comprovanteContaBancaria") || "")
+                        Utilitario.carregarArquivosDeString(map.get("comprovanteContaBancaria") || "")
                     ).trigger("change");
                 }
             });
     }
 
-    async function _saveData(data, info) {
+    const validarFormulario = () => {
         validador.validarCampos();
 
+        const titulo = "Validação";
+        let mensagem = "Dados validados com sucesso.";
+
         if (!validador.formularioValido()) {
-            const mensagem = "Dados inválidos. Corrija as informações preenchidas no formulário e preencha todos os campos obrigatórios para prosseguir.";
-            alert(mensagem);
+            mensagem = "Dados inválidos. Corrija as informações preenchidas no formulário e preencha todos "
+                + "os campos obrigatórios para prosseguir.";
+            Mensagem.exibir(titulo, mensagem, "aviso");
             throw new Error(mensagem);
         }
+        else {
+            Mensagem.exibir(titulo, mensagem, "sucesso");
+        }
+    }
+
+    async function _saveData(data, info) {
+        validarFormulario();
 
         let dados = {};
 
@@ -218,13 +229,13 @@ const Controlador = (() => {
         dados.favEmail = campos["favEmail"].val();
         dados.favTelefone = campos["favTelefone"].cleanVal();
         dados.observacoes = campos["observacoes"].val();
-        dados.documentosPessoaFisica = await Genericos.salvarArquivosEmString(
+        dados.documentosPessoaFisica = await Utilitario.salvarArquivosEmString(
             campos["documentosPessoaFisica"].obterElementoHtml()
         ); // Salvamento de anexo na forma de uma string
-        dados.comprovanteEndereco = await Genericos.salvarArquivosEmString(
+        dados.comprovanteEndereco = await Utilitario.salvarArquivosEmString(
             campos["comprovanteEndereco"].obterElementoHtml()
         );
-        dados.comprovanteContaBancaria = await Genericos.salvarArquivosEmString(
+        dados.comprovanteContaBancaria = await Utilitario.salvarArquivosEmString(
             campos["comprovanteContaBancaria"].obterElementoHtml()
         );
         dados.nomeUsuario = campos["nomeUsuario"].val();
@@ -258,16 +269,6 @@ const Controlador = (() => {
 
         // Configuração de eventos, máscaras, validações, consultas, etc.
         definirEstadoInicial();
-    }
-
-    const listarCampos = () => {
-        const props = [];
-
-        for (const prop in campos) {
-            props.push(`"${prop}"`);
-        }
-
-        console.log(props.join(", "));
     }
 
     const definirEstadoInicial = () => {
@@ -502,6 +503,7 @@ const Controlador = (() => {
             for (const idCampo in campos) {
                 campos[idCampo].definirEdicao(false);
                 campos[idCampo].sobrescreverEditabilidade(true);
+                campos[idCampo].sobrescreverObrigatoriedade(true);
             }
 
             return;
@@ -534,15 +536,19 @@ const Controlador = (() => {
         );
     }
 
+    const listarCampos = () => {
+        const props = [];
+
+        for (const prop in campos) {
+            props.push(`"${prop}"`);
+        }
+
+        console.log(props.join(", "));
+    }
+
     // Função usada para envios de teste
     const enviar = () => {
-        validador.validarCampos();
-
-        if (validador.formularioValido()) {
-            alert("Ok!");
-        } else {
-            alert("Formulário inválido!");
-        }
+        validarFormulario();
     };
 
     const consultarCnpj = (tipoConsulta, campoDocumento, campoRazaoSocial, campoNomeFantasia, campoCep, campoEstado,
@@ -570,9 +576,12 @@ const Controlador = (() => {
             return;
         }
 
+        let titulo = "Consulta por CNPJ";
+        let mensagem = "CNPJ não encontrado ou API indisponível para consulta.";
+
         campoDocumento.iniciarCarregamento();
 
-        $.getJSON(`https://publica.cnpj.ws/cnpj/${cnpj}`, function (dadosCnpj) {
+        $.getJSON(`https://publica.cnpj.ws/cnpj/${cnpj}x`, function (dadosCnpj) {
             campoDocumento.finalizarCarregamento();
 
             campos["cadastroComRestricao"].campo.prop("checked", false);
@@ -618,8 +627,9 @@ const Controlador = (() => {
             }
 
             carregaveis.filter("[required]").trigger("blur.obrigatorio");
-        }).fail(function () {
-            campoDocumento.falharCarregamento("CNPJ não encontrado ou API indisponível para consulta.");
+        }).fail(function() {
+            Mensagem.exibir(titulo, mensagem, "aviso");
+            campoDocumento.falharCarregamento();
         });
     }
 
@@ -644,18 +654,20 @@ const Controlador = (() => {
             return;
         }
 
-        let mensagem = "CEP não encontrado ou API indisponível para consulta.";
+        let titulo = "Consulta por CEP";
+        let mensagem = "CEP não encontrado.";
+
         campoCep.iniciarCarregamento();
         consultarViaCep();
 
         function consultarViaCep() {
-            const url = `https://viacep.com.br/ws/${cep}/json/?callback=?`;
+            const url = `https://viacep.com.br/ws/${cep}/json`;
             // const log = "Falha na consulta por CEP no ViaCEP. Tentando consultar pela República Virtual.";
-
 
             $.getJSON(url, function(dadosCep) {
                 if ("erro" in dadosCep) {
-                    campoCep.falharCarregamento(mensagem);
+                    campoCep.falharCarregamento();
+                    Mensagem.exibir(titulo, mensagem, "aviso");
                     return;
                 }
 
@@ -672,8 +684,10 @@ const Controlador = (() => {
                 campoLogradouro.val(logradouro)//.trigger("blur");
                 campoBairro.val(bairro)//.trigger("blur");
                 campoComplemento.val(complemento)//.trigger("blur");
-            }).fail(function () {
-                campoCep.falharCarregamento(mensagem);
+            }).fail(function() {
+                mensagem = "Houve um erro ao realizar a consulta por CEP. Tente novamente mais tarde.";
+                Mensagem.exibir(titulo, mensagem, "erro");
+                campoCep.falharCarregamento();
             });
         }
 
