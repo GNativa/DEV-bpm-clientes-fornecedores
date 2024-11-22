@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="JavaScriptLibraryMappings">
-    <file url="PROJECT" libraries="{@popperjs/core, bootstrap, iframe-resizer, jquery-3.7.1, jquery.mask, vue, workflow-cockpit}" />
+    <file url="PROJECT" libraries="{@popperjs/core, bootstrap, bootstrap-icons, iframe-resizer, jquery-3.7.1, jquery.mask, vue, workflow-cockpit}" />
   </component>
 </project>

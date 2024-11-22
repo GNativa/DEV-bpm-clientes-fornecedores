@@ -11,5 +11,6 @@
     <orderEntry type="library" name="iframe-resizer" level="application" />
     <orderEntry type="library" name="vue" level="application" />
     <orderEntry type="library" name="workflow-cockpit" level="application" />
+    <orderEntry type="library" name="bootstrap-icons" level="application" />
   </component>
 </module>

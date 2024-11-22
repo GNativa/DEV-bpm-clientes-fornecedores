@@ -90,7 +90,8 @@ class Campo {
         coluna.classList.add(classeColuna);
 
         let classes = ["campo"];
-        let filhoColuna, campo, label;
+        let filhoColuna, campo;
+        let label = document.createElement("label");
 
         const elemento = tipoParaElemento[tipo].elemento;
         const tipoCampo = tipoParaElemento[tipo].tipo;
@@ -101,7 +102,12 @@ class Campo {
         campo.placeholder = rotulo;
 
         if (dica !== null) {
-            campo.title = dica;
+            const icone = document.createElement("i");
+            icone.classList.add("bi", "bi-info-circle-fill", "me-2", "pe-auto");
+            icone.dataset.bsToggle = "tooltip";
+            icone.dataset.bsPlacement = "top";
+            icone.title = dica;
+            label.appendChild(icone);
         }
 
         if (tipoCampo !== null) {
@@ -116,13 +122,13 @@ class Campo {
             filhoColuna = document.createElement("div");
             let classeFilho;
 
-            label = document.createElement("label");
-            label.textContent = rotulo;
+            label.append(rotulo);
             label.htmlFor = id;
 
             if (tipo !== "checkbox") {
                 classes.push("form-control");
                 classeFilho = "form-floating";
+
             }
             else {
                 classes.push("form-check-input");
@@ -152,8 +158,7 @@ class Campo {
         }
         else if (tipoCampo === "file") {
             classes.push("form-control");
-            label = document.createElement("label");
-            label.textContent = rotulo;
+            label.append(rotulo);
             label.htmlFor = id;
 
             coluna.appendChild(label);

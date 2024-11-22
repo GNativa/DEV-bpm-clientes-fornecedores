@@ -71,7 +71,7 @@ const Controlador = (() => {
         console.log(initialVariables);
 
         info
-            .getUserData()
+            ["getUserData"]()
             .then(function (user) {
                 console.log(user);
                 /*
@@ -88,17 +88,17 @@ const Controlador = (() => {
                  */
             })
             .then(function () {
-                info.getPlatformData().then(function (platformData) {
+                info["getPlatformData"]().then(function (platformData) {
                     console.log(platformData);
                 });
             });
 
         info
-            .getInfoFromProcessVariables()
+            ["getInfoFromProcessVariables"]()
             .then(function (data) {
                 console.log(data);
 
-                if (!info.isRequestNew() && Array.isArray(data)) {
+                if (!info["isRequestNew"]() && Array.isArray(data)) {
                     const map = new Map();
 
                     for (let i = 0; i < data.length; i++) {
@@ -274,6 +274,7 @@ const Controlador = (() => {
         botaoEnviar = $("#enviar");
         configurarEtapas();
         configurarEventos();
+        configurarPlugins();
 
         // Opções de máscara
         const opcoesDocumento = {
@@ -524,6 +525,14 @@ const Controlador = (() => {
     const configurarEventos = () => {
         botaoEnviar.click(enviar);
     };
+
+    const configurarPlugins = () => {
+        const tooltipTriggerList =
+            document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipList = [...tooltipTriggerList].map(
+            tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl)
+        );
+    }
 
     // Função usada para envios de teste
     const enviar = () => {
