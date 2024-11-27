@@ -22,6 +22,10 @@
     color: #ff0000;
 }
 
+.toast {
+    --bs-toast-bg: rgba(var(--bs-body-bg-rgb), 1);
+}
+
 /*
 [readonly] {
     background-color: #e7eaed;

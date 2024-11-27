@@ -41,18 +41,13 @@ const Controlador = (() => {
     let inicializado = false;
 
     // Variáveis para uso em validações, consultas, etc.
-    let cnpjInaptoCadastro = false;
+    let cnpjInaptoCadastro = false, cnpjInaptoTitular = false;
 
     let campos = {},             // Contém todos os campos no formato {"id": Campo}
-        aprovacao = {},          // Campos da seção de aprovação
-        secaoAprovacao,              // A própria seção de aprovação
-        dadosPrincipais = {},    // Campos da seção de dados principais
+        secaoAprovacao,              // Seção de aprovação
         secaoDadosPrincipais,        // Etc.
-        contaBancaria = {},
         secaoContaBancaria,
-        detalhesDocumentos = {},
         secaoDetalhesDocumentos,
-        controle = {},
         secaoControle,
         botaoEnviar;
 
@@ -173,8 +168,8 @@ const Controlador = (() => {
         let mensagem = "Dados validados com sucesso.";
 
         if (!validador.formularioValido()) {
-            mensagem = "Dados inválidos. Corrija as informações preenchidas no formulário e preencha todos "
-                + "os campos obrigatórios para prosseguir.";
+            mensagem = "Dados inválidos. Preencha todos os campos obrigatórios e verifique as informações inseridas "
+                + "no formulário para prosseguir.";
             Mensagem.exibir(titulo, mensagem, "aviso");
             throw new Error(mensagem);
         }
@@ -261,9 +256,6 @@ const Controlador = (() => {
         // Construção dos campos do formulário
         gerarFormulario();
 
-        // Reunião dos campos de todas as seções em um só "dicionário" (objeto com pares de chave-valor)
-        campos = {...aprovacao, ...dadosPrincipais, ...contaBancaria, ...detalhesDocumentos, ...controle};
-
         // Listagem dos IDs de todos os campos
         // listarCampos();
 
@@ -293,7 +285,6 @@ const Controlador = (() => {
         const opcoesContato = {
             onKeyPress: function (numero, ev, el, op) {
                 const mascaras = ["(00) 0000-00009", "(00) 0 0000-0000"];
-                console.log(numero.length);
                 campos["contatoAdicional"].campo.mask(numero.length <= 14 && numero.length > 0 ? mascaras[0] : mascaras[1], op);
             },
             clearIfNotMatch: true
@@ -321,7 +312,6 @@ const Controlador = (() => {
                 [campos["documento"]],
                 [campos["documento"]],
             ),
-
             new Validacao(() => {
                     return campos["documento"].cleanVal().length <= 11;
                 },
@@ -335,7 +325,6 @@ const Controlador = (() => {
                 [campos["razaoSocial"], campos["cep"], campos["estado"], campos["cidade"],
                     campos["logradouro"], campos["numero"], campos["bairro"], campos["emailContato"], campos["telefone"]]
             ),
-
             new Validacao(() => {
                     return campos["formaPagamento"].val() === "3";
                 },
@@ -350,7 +339,6 @@ const Controlador = (() => {
                     campos["documentoConta"], campos["titularConta"]],
                 [campos["documentoConta"]]
             ),
-
             new Validacao(() => {
                     const documentoCadastro = campos["documento"].val();
                     const documentoConta = campos["documentoConta"].val();
@@ -363,7 +351,6 @@ const Controlador = (() => {
                 [campos["documento"], campos["documentoConta"]],
                 [campos["documentoConta"]]
             ),
-
             new Validacao(() => {
                     const documentoCadastro = campos["documento"].val();
                     const documentoConta = campos["documentoConta"].val();
@@ -384,15 +371,13 @@ const Controlador = (() => {
                     campos["favEmail"], campos["favTelefone"]],
                 [campos["favCep"]]
             ),
-
             new Validacao(() => {
                     return cnpjInaptoCadastro && !campos["cadastroComRestricao"].campo.prop("checked");
                 },
-                "A empresa está com restrição. Marque a caixa ao lado para prosseguir.",
+                "A empresa está com restrição. Marque a caixa ao lado para prosseguir com o cadastro.",
                 [campos["documento"], campos["cadastroComRestricao"]],
                 [campos["documento"]]
             ),
-
             new Validacao(() => {
                     return cnpjInaptoCadastro && campos["documento"].cleanVal().length === 14;
                 },
@@ -404,7 +389,6 @@ const Controlador = (() => {
                 null,
                 [campos["cadastroComRestricao"]]
             ),
-
             new Validacao(() => {
                     const documento = campos["documentoConta"].cleanVal();
 
@@ -415,28 +399,28 @@ const Controlador = (() => {
                 [campos["documentoConta"]],
                 [campos["documentoConta"]],
             ),
-
-            /*
             new Validacao(() => {
-                    return cnpjInaptoConta && !campos["cadastroComRestricao"].campo.prop("checked");
+                    return campos["documentoConta"].val() !== campos["documento"].val()
+                        && cnpjInaptoTitular
+                        && !campos["titularComRestricao"].campo.prop("checked");
                 },
-                "A empresa está com restrição. Marque a caixa ao lado para prosseguir.",
-                [campos["documento"], campos["cadastroComRestricao"]],
-                [campos["documento"]]
+                "A empresa está com restrição. Marque a próxima caixa para prosseguir com o cadastro.",
+                [campos["documentoConta"], campos["titularComRestricao"]],
+                [campos["documentoConta"]]
             ),
-
             new Validacao(() => {
-                    return cnpjInaptoCadastro && campos["documento"].cleanVal().length === 14;
+                    return campos["documentoConta"].val() !== campos["documento"].val()
+                        && cnpjInaptoTitular
+                        && campos["documentoConta"].cleanVal().length === 14;
                 },
                 null,
-                [campos["documento"]],
+                [campos["documentoConta"]],
                 null,
-                [campos["cadastroComRestricao"]],
+                [campos["titularComRestricao"]],
                 null,
                 null,
-                [campos["cadastroComRestricao"]]
+                [campos["titularComRestricao"]]
             ),
-             */
         ];
 
         validador.configurarValidacoes();
@@ -530,7 +514,7 @@ const Controlador = (() => {
 
     const configurarPlugins = () => {
         const tooltipTriggerList =
-            document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            document.querySelectorAll(`[data-bs-toggle="tooltip"]`);
         const tooltipList = [...tooltipTriggerList].map(
             tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl)
         );
@@ -551,9 +535,12 @@ const Controlador = (() => {
         validarFormulario();
     };
 
-    const consultarCnpj = (tipoConsulta, campoDocumento, campoRazaoSocial, campoNomeFantasia, campoCep, campoEstado,
+    const consultarCnpj = (origemConsulta, campoDocumento, campoRazaoSocial, campoNomeFantasia, campoCep, campoEstado,
                            campoCidade, campoLogradouro, campoNumero, campoBairro, campoComplemento, campoEmailContato,
                            campoTelefone, campoContatoAdicional) => {
+        let consultar = true;
+        let razaoSocial, nomeFantasia, cep, estado, cidade, tipoLogradouro, logradouro,
+            numero, bairro, complemento, email, ddd1, telefone1, telefone, ddd2, telefone2, telefoneAdicional;
         const carregaveis = $(campoDocumento.classeCarregaveis);
         const cnpj = campoDocumento.cleanVal();
 
@@ -562,53 +549,128 @@ const Controlador = (() => {
         }
 
         if (cnpj === "" || (cnpj.length < 14 && campoRazaoSocial.val() !== "")) {
-            if (tipoConsulta === "cadastro") {
+            if (origemConsulta === "cadastro") {
                 cnpjInaptoCadastro = false;
                 campos["cadastroComRestricao"].campo.prop("checked", false);
-                campos["documento"].campo.trigger("change");
+            }
+            else {
+                cnpjInaptoTitular = false;
+                campos["titularComRestricao"].campo.prop("checked", false);
             }
 
+            campoDocumento.campo.trigger("change");
             carregaveis.not(campoDocumento.campo).val("");
             return;
         }
 
-        if (cnpj.length < 14) {
+        if (origemConsulta !== "cadastro") {
+            consultar = campos["documentoConta"].cleanVal() !== campos["documento"].cleanVal();
+
+            if (!consultar) {
+                campoDocumento.iniciarCarregamento();
+                cnpjInaptoTitular = cnpjInaptoCadastro;
+
+                razaoSocial = campos["razaoSocial"].val();
+                nomeFantasia = campos["nomeFantasia"].val();
+                cep = campos["cep"].cleanVal();
+                estado = campos["estado"].val();
+                cidade = campos["cidade"].val();
+                logradouro = campos["logradouro"].val();
+                numero = campos["numero"].val();
+                bairro = campos["bairro"].val();
+                complemento = campos["complemento"].val();
+                email = campos["emailContato"].val();
+                telefone = campos["telefone"].cleanVal();
+                telefoneAdicional = campos["contatoAdicional"].cleanVal();
+
+                campoDocumento.finalizarCarregamento();
+                salvarDados();
+                validarObrigatorios();
+            }
+        }
+
+        if (cnpj.length < 14 || !consultar) {
             return;
         }
 
         let titulo = "Consulta por CNPJ";
-        let mensagem = "CNPJ não encontrado ou API indisponível para consulta.";
 
         campoDocumento.iniciarCarregamento();
 
-        $.getJSON(`https://publica.cnpj.ws/cnpj/${cnpj}x`, function (dadosCnpj) {
+        $.getJSON(`https://publica.cnpj.ws/cnpj/${cnpj}`, function (dadosCnpj) {
             campoDocumento.finalizarCarregamento();
 
-            campos["cadastroComRestricao"].campo.prop("checked", false);
-
-            if (tipoConsulta === "cadastro") {
+            if (origemConsulta === "cadastro") {
+                campos["cadastroComRestricao"].campo.prop("checked", false);
                 cnpjInaptoCadastro = dadosCnpj["estabelecimento"]["situacao_cadastral"].toLowerCase() !== "ativa";
-                campoDocumento.campo.trigger("change");
+            }
+            else {
+                campos["titularComRestricao"].campo.prop("checked", false);
+                cnpjInaptoTitular = dadosCnpj["estabelecimento"]["situacao_cadastral"].toLowerCase() !== "ativa";
             }
 
-            const razaoSocial = dadosCnpj["razao_social"];
-            const nomeFantasia = dadosCnpj["estabelecimento"]["nome_fantasia"] ?? "";
-            const cep = dadosCnpj["estabelecimento"]["cep"];
-            const estado = dadosCnpj["estabelecimento"]["estado"]["sigla"];
-            const cidade = dadosCnpj["estabelecimento"]["cidade"]["nome"];
-            const tipoLogradouro = dadosCnpj["estabelecimento"]["tipo_logradouro"] ?? "";
-            const logradouro = (tipoLogradouro !== "" ? (tipoLogradouro + " ") : "") + dadosCnpj["estabelecimento"]["logradouro"];
-            const numero = dadosCnpj["estabelecimento"]["numero"];
-            const bairro = dadosCnpj["estabelecimento"]["bairro"];
-            const complemento = dadosCnpj["estabelecimento"]["complemento"] ?? "";
-            const email = dadosCnpj["estabelecimento"]["email"];
-            const ddd1 = dadosCnpj["estabelecimento"]["ddd1"] ?? "";
-            const telefone1 = dadosCnpj["estabelecimento"]["telefone1"] ?? "";
-            const telefone = ddd1 + telefone1;
-            const ddd2 = dadosCnpj["estabelecimento"]["ddd2"] ?? "";
-            const telefone2 = dadosCnpj["estabelecimento"]["telefone2"] ?? "";
-            const telefoneAdicional = ddd2 + telefone2;
+            obterDados(dadosCnpj);
+            salvarDados();
+            validarObrigatorios();
+        }).fail(function(retorno) {
+            const resposta = retorno["responseJSON"];
+            let mensagem, tipoMensagem;
 
+            switch (resposta["status"]) {
+                case 400: {
+                    mensagem = "CNPJ inválido.";
+                    tipoMensagem = "aviso";
+                    break;
+                }
+                case 404: {
+                    mensagem = "CNPJ não encontrado.";
+                    tipoMensagem = "aviso";
+                    break;
+                }
+                case 429: {
+                    mensagem = resposta["detalhes"];
+                    tipoMensagem = "aviso";
+                    break;
+                }
+                case 500: {
+                    mensagem = resposta["detalhes"];
+                    tipoMensagem = "erro";
+                    break;
+                }
+                default: {
+                    mensagem = resposta["detalhes"];
+                    tipoMensagem = "aviso";
+                    break;
+                }
+            }
+
+            campoDocumento.falharCarregamento();
+            console.log(retorno);
+            Mensagem.exibir(titulo, mensagem, tipoMensagem);
+        });
+
+        function obterDados(dadosCnpj) {
+            razaoSocial = dadosCnpj["razao_social"];
+            nomeFantasia = dadosCnpj["estabelecimento"]["nome_fantasia"] ?? "";
+            cep = dadosCnpj["estabelecimento"]["cep"];
+            estado = dadosCnpj["estabelecimento"]["estado"]["sigla"];
+            cidade = dadosCnpj["estabelecimento"]["cidade"]["nome"];
+            tipoLogradouro = dadosCnpj["estabelecimento"]["tipo_logradouro"] ?? "";
+            logradouro = (tipoLogradouro !== "" ? (tipoLogradouro + " ") : "") + dadosCnpj["estabelecimento"]["logradouro"];
+            numero = dadosCnpj["estabelecimento"]["numero"];
+            bairro = dadosCnpj["estabelecimento"]["bairro"];
+            complemento = dadosCnpj["estabelecimento"]["complemento"] ?? "";
+            email = dadosCnpj["estabelecimento"]["email"];
+            ddd1 = dadosCnpj["estabelecimento"]["ddd1"] ?? "";
+            telefone1 = dadosCnpj["estabelecimento"]["telefone1"] ?? "";
+            telefone = ddd1 + telefone1;
+            ddd2 = dadosCnpj["estabelecimento"]["ddd2"] ?? "";
+            telefone2 = dadosCnpj["estabelecimento"]["telefone2"] ?? "";
+            telefoneAdicional = ddd2 + telefone2;
+        }
+
+        function salvarDados() {
+            campoDocumento.campo.trigger("change");
             campoRazaoSocial.val(razaoSocial);
             campoNomeFantasia.val(nomeFantasia);
             campoCep.val(cep);
@@ -625,12 +687,11 @@ const Controlador = (() => {
                 campoContatoAdicional.configurarMascara("(00) 0000-00009");
                 campoContatoAdicional.val(telefoneAdicional);
             }
+        }
 
+        function validarObrigatorios() {
             carregaveis.filter("[required]").trigger("blur.obrigatorio");
-        }).fail(function() {
-            Mensagem.exibir(titulo, mensagem, "aviso");
-            campoDocumento.falharCarregamento();
-        });
+        }
     }
 
     const consultarCep = (campoCep, campoEstado, campoCidade, campoLogradouro, campoBairro, campoComplemento) => {
@@ -662,7 +723,6 @@ const Controlador = (() => {
 
         function consultarViaCep() {
             const url = `https://viacep.com.br/ws/${cep}/json`;
-            // const log = "Falha na consulta por CEP no ViaCEP. Tentando consultar pela República Virtual.";
 
             $.getJSON(url, function(dadosCep) {
                 if ("erro" in dadosCep) {
@@ -679,12 +739,13 @@ const Controlador = (() => {
                 const bairro = dadosCep["bairro"];
                 const complemento = dadosCep["complemento"];
 
-                campoEstado.val(estado)//.trigger("blur");
-                campoCidade.val(cidade)//.trigger("blur");
-                campoLogradouro.val(logradouro)//.trigger("blur");
-                campoBairro.val(bairro)//.trigger("blur");
-                campoComplemento.val(complemento)//.trigger("blur");
-            }).fail(function() {
+                campoEstado.val(estado);
+                campoCidade.val(cidade);
+                campoLogradouro.val(logradouro);
+                campoBairro.val(bairro);
+                campoComplemento.val(complemento);
+            }).fail(function(retorno) {
+                console.log(retorno);
                 mensagem = "Houve um erro ao realizar a consulta por CEP. Tente novamente mais tarde.";
                 Mensagem.exibir(titulo, mensagem, "erro");
                 campoCep.falharCarregamento();
@@ -725,6 +786,18 @@ const Controlador = (() => {
          */
     }
 
+    /*
+        const lista = [
+            new Campo(id, rotulo, tipo, largura, ...),
+            new Campo(id, rotulo, tipo, largura, ...),
+            new Campo(id, rotulo, tipo, largura, ...),
+            ...
+        ];
+        salvarCampos(lista);
+        secao = new Secao(id, titulo, lista);
+        secao.gerar();
+     */
+
     const gerarFormulario = () => {
         const camposAprovacao = [
             new Campo(
@@ -732,38 +805,38 @@ const Controlador = (() => {
             ),
         ];
 
-        aprovacao = obterDicionario("id", camposAprovacao);
+        salvarCampos(camposAprovacao);
         secaoAprovacao = new Secao("aprovacao", "Aprovação", camposAprovacao);
         secaoAprovacao.gerar();
 
         const listaEstados = [
-            new OpcaoLista("AC", "AC"),
-            new OpcaoLista("AL", "AL"),
-            new OpcaoLista("AM", "AM"),
-            new OpcaoLista("AP", "AP"),
-            new OpcaoLista("BA", "BA"),
-            new OpcaoLista("CE", "CE"),
-            new OpcaoLista("DF", "DF"),
-            new OpcaoLista("ES", "ES"),
-            new OpcaoLista("GO", "GO"),
-            new OpcaoLista("MA", "MA"),
-            new OpcaoLista("MG", "MG"),
-            new OpcaoLista("MS", "MS"),
-            new OpcaoLista("MT", "MT"),
-            new OpcaoLista("PA", "PA"),
-            new OpcaoLista("PB", "PB"),
-            new OpcaoLista("PE", "PE"),
-            new OpcaoLista("PI", "PI"),
-            new OpcaoLista("PR", "PR"),
-            new OpcaoLista("RJ", "RJ"),
-            new OpcaoLista("RN", "RN"),
-            new OpcaoLista("RO", "RO"),
-            new OpcaoLista("RR", "RR"),
-            new OpcaoLista("RS", "RS"),
-            new OpcaoLista("SC", "SC"),
-            new OpcaoLista("SE", "SE"),
-            new OpcaoLista("SP", "SP"),
-            new OpcaoLista("TO", "TO"),
+            new OpcaoLista("AC", "AC - Acre"),
+            new OpcaoLista("AL", "AL - Alagoas"),
+            new OpcaoLista("AM", "AM - Amazonas"),
+            new OpcaoLista("AP", "AP - Amapá"),
+            new OpcaoLista("BA", "BA - Bahia"),
+            new OpcaoLista("CE", "CE - Ceará"),
+            new OpcaoLista("DF", "DF - Distrito Federal"),
+            new OpcaoLista("ES", "ES - Espírito Santo"),
+            new OpcaoLista("GO", "GO - Goiás"),
+            new OpcaoLista("MA", "MA - Maranhão"),
+            new OpcaoLista("MG", "MG - Minas Gerais"),
+            new OpcaoLista("MS", "MS - Mato Grosso do Sul"),
+            new OpcaoLista("MT", "MT - Mato Grosso"),
+            new OpcaoLista("PA", "PA - Pará"),
+            new OpcaoLista("PB", "PB - Paraíba"),
+            new OpcaoLista("PE", "PE - Pernambuco"),
+            new OpcaoLista("PI", "PI - Piauí"),
+            new OpcaoLista("PR", "PR - Paraná"),
+            new OpcaoLista("RJ", "RJ - Rio de Janeiro"),
+            new OpcaoLista("RN", "RN - Rio Grande do Norte"),
+            new OpcaoLista("RO", "RO - Rondônia"),
+            new OpcaoLista("RR", "RR - Roraima"),
+            new OpcaoLista("RS", "RS - Rio Grande do Sul"),
+            new OpcaoLista("SC", "SC - Santa Catarina"),
+            new OpcaoLista("SE", "SE - Sergipe"),
+            new OpcaoLista("SP", "SP - São Paulo"),
+            new OpcaoLista("TO", "TO - Tocantins"),
         ];
 
         const camposDadosPrincipais = [
@@ -831,7 +904,7 @@ const Controlador = (() => {
                 ]),
         ];
 
-        dadosPrincipais = obterDicionario("id", camposDadosPrincipais);
+        salvarCampos(camposDadosPrincipais);
         secaoDadosPrincipais = new Secao("dadosPrincipais", "Dados principais", camposDadosPrincipais);
         secaoDadosPrincipais.gerar();
 
@@ -990,6 +1063,8 @@ const Controlador = (() => {
                 "documentoConta", "CPF/CNPJ do titular", "texto", 2,
                 "Pressione TAB ou selecione outro campo para efetuar uma consulta com o documento informado"
             ),
+            new Campo("titularComRestricao", "Solicitar aprovação de titular com restrição", "checkbox",
+                2, "Marcar caso seja necessário realizar um cadastro com alguma restrição"),
             new Campo("titularConta", "Titular da conta", "texto", 4),
             new Campo("favNomeFantasia", "Nome fantasia", "texto", 4),
             new Campo(
@@ -1007,7 +1082,7 @@ const Controlador = (() => {
             new Campo("favTelefone", "Telefone ou celular", "texto", 2),
         ];
 
-        contaBancaria = obterDicionario("id", camposContaBancaria);
+        salvarCampos(camposContaBancaria);
         secaoContaBancaria = new Secao("contaBancaria", "Conta bancária",  camposContaBancaria);
         secaoContaBancaria.gerar();
 
@@ -1021,7 +1096,7 @@ const Controlador = (() => {
             new Campo("comprovanteContaBancaria", "Comprovante de conta bancária", "anexo", 4),
         ];
 
-        detalhesDocumentos = obterDicionario("id", camposDetalhesDocumentos);
+        salvarCampos(camposDetalhesDocumentos);
         secaoDetalhesDocumentos = new Secao("detalhesDocumentos", "Detalhes e documentos", camposDetalhesDocumentos);
         secaoDetalhesDocumentos.gerar();
         
@@ -1035,19 +1110,15 @@ const Controlador = (() => {
             ),
         ];
 
-        controle = obterDicionario("id", camposControle);
+        salvarCampos(camposControle);
         secaoControle = new Secao("controle", "Controle", camposControle);
         secaoControle.gerar();
     };
 
-    const obterDicionario = (propriedadeChave, array) => {
-        const dicionario = {};
-
-        for (const item of array) {
-            dicionario[item[propriedadeChave]] = item;
+    const salvarCampos = (listaDeCampos) => {
+        for (const campo of listaDeCampos) {
+            campos[campo["id"]] = campo;
         }
-
-        return dicionario;
     };
 
     return {

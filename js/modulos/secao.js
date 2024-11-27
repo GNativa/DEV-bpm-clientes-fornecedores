@@ -1,3 +1,8 @@
+/*
+    - Seção: agrupamento de campos que pode possuir um título ou não, servindo como quebra de linha quando
+    gerada sem um título.
+ */
+
 class Secao {
     constructor(id, titulo, campos) {
         this.id = id;
@@ -48,7 +53,7 @@ class Secao {
         const secao = this.divSecao;
 
         if (gerada || campos.length === 0) {
-            return;
+            return null;
         }
 
         const id = this.id;

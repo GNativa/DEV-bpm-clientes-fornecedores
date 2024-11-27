@@ -31,7 +31,7 @@ class Validador {
             .trigger("change")
             .filter("[required]:visible")
             .filter(function () {
-                return this.value === ""
+                return (this.type === "checkbox" && !this.checked) || (this.type !== "checkbox" && this.value === "")
             })
             .addClass("nao-preenchido")
             .trigger("change");
@@ -48,9 +48,9 @@ class Validador {
 
     configurarValidacoes() {
         for (const validacao of this.validacoes) {
-            const campos = [...validacao.camposMonitorados];
+            const monitorados = [...validacao.camposMonitorados];
 
-            for (const campo of campos) {
+            for (const campo of monitorados) {
                 campo.adicionarEvento("change", function() {
                     for (const consistido of validacao.camposConsistidos) {
                         if (consistido["consistenciaAtiva"] !== null && consistido["consistenciaAtiva"]["id"] !== validacao["id"]) {

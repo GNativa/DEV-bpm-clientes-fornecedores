@@ -5,7 +5,7 @@ const Utilitario = (() => {
             const dadosArquivos = [];
 
             if (arquivos.length === 0) {
-                resolve(""); // Retorna string vazia se não há arquivos selecionados
+                resolve("");
                 return;
             }
 
@@ -23,9 +23,10 @@ const Utilitario = (() => {
                     });
 
                     arquivosLidos++;
+
                     if (arquivosLidos === arquivos.length) {
-                        const stringUnica = JSON.stringify(dadosArquivos); // Converte o array de dados em uma única string JSON
-                        resolve(stringUnica);
+                        const arquivosEmString = JSON.stringify(dadosArquivos); // Converter o array de dados em uma única string JSON
+                        resolve(arquivosEmString);
                     }
                 };
 
@@ -33,7 +34,7 @@ const Utilitario = (() => {
                     reject(error);
                 };
 
-                reader.readAsDataURL(arquivo); // Lê como base64
+                reader.readAsDataURL(arquivo); // Ler como base64
             }
         });
     }
@@ -44,10 +45,12 @@ const Utilitario = (() => {
             return new DataTransfer().files;
         }
 
-        const dadosArquivos = JSON.parse(string); // Converte a string JSON de volta para o array de objetos
+        // Converter a string JSON de volta para o array de objetos
+        const dadosArquivos = JSON.parse(string);
 
         const arquivos = dadosArquivos.map((arquivoData) => {
-            const conteudo = arquivoData.conteudo.split(',')[1]; // Remove o prefixo data:mime/type;base64,
+            // Remover o prefixo data:mime/type;base64,
+            const conteudo = arquivoData.conteudo.split(',')[1];
             const blob = new Blob([Uint8Array.from(atob(conteudo), c => c.charCodeAt(0))], { type: arquivoData.tipo });
             return new File([blob], arquivoData.nome, { type: arquivoData.tipo });
         });

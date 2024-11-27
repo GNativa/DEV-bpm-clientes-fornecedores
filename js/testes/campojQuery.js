@@ -26,7 +26,7 @@ const tipoParaElemento = {
 
 (function($) {
     $.fn.campo = function(options) {
-        const settings = $.extend({
+        const parametros = $.extend({
             idCampo: null,
             rotulo: "",
             tipo: "",
@@ -34,43 +34,47 @@ const tipoParaElemento = {
             dica: null,
             altura: null,
             propriedadesAdicionais: {},
-            $coluna: $("<div>")
+            $coluna: $("<div>"),
         }, options);
 
+        if (document.getElementById(parametros.idCampo) !== null) {
+            throw Error(`Já existe um campo com o id "${parametros.idCampo}".`);
+        }
+
         // Verificar se o tipo é válido
-        if (!(settings.tipo in tipoParaElemento)) {
-            throw Error(`Tipo de campo "${settings.tipo}" inválido ou não suportado.`);
+        if (!(parametros.tipo in tipoParaElemento)) {
+            throw Error(`Tipo de campo "${parametros.tipo}" inválido ou não suportado.`);
         }
 
         // Função principal do plugin
         return this.each(function() {
-            settings.$coluna.addClass(
-                settings.largura >= 1 && settings.largura <= 12 ? `col-${settings.largura}` : "col"
+            parametros.$coluna.addClass(
+                parametros.largura >= 1 && parametros.largura <= 12 ? `col-${parametros.largura}` : "col"
             );
 
-            const elementoConfig = tipoParaElemento[settings.tipo];
+            const elementoConfig = tipoParaElemento[parametros.tipo];
             const $campo = $(`<${elementoConfig.elemento}>`, {
-                id: settings.idCampo,
-                name: settings.idCampo,
-                placeholder: settings.rotulo,
-                title: settings.dica,
+                id: parametros.idCampo,
+                name: parametros.idCampo,
+                placeholder: parametros.rotulo,
+                title: parametros.dica,
                 type: elementoConfig.tipo || undefined
             });
 
-            for (const [prop, val] of Object.entries(settings.propriedadesAdicionais)) {
+            for (const [prop, val] of Object.entries(parametros.propriedadesAdicionais)) {
                 $campo.prop(prop, val);
             }
 
             // Condicionais de estrutura e layout por tipo de elemento
-            if (["input", "textarea"].includes(elementoConfig.elemento) && settings.tipo !== "file") {
+            if (["input", "textarea"].includes(elementoConfig.elemento) && parametros.tipo !== "file") {
                 const $label = $("<label>", {
-                    for: settings.idCampo,
-                    text: settings.rotulo,
+                    for: parametros.idCampo,
+                    text: parametros.rotulo,
                 });
 
                 let $container;
 
-                if (settings.tipo === "checkbox") {
+                if (parametros.tipo === "checkbox") {
                     $container = $(`<div class="form-check">`);
                     $campo.addClass("form-check-input");
                     $label.addClass("form-check-label mt-1 ms-2");
@@ -79,26 +83,28 @@ const tipoParaElemento = {
                     $container = $(`<div class="form-floating">`);
                     $campo.addClass("form-control");
 
-                    if (settings.altura) $campo.css("height", settings.altura);
+                    if (parametros.altura) {
+                        $campo.css("height", parametros.altura);
+                    }
                 }
 
                 $container.append($campo, $label);
-                settings.$coluna.append($container);
+                parametros.$coluna.append($container);
             }
             else if (elementoConfig.elemento === "select") {
-                $campo.addClass("form-select").append(new Option(settings.rotulo, ""));
-                settings.$coluna.append($campo);
+                $campo.addClass("form-select").append(new Option(parametros.rotulo, ""));
+                parametros.$coluna.append($campo);
             }
-            else if (settings.tipo === "file") {
+            else if (parametros.tipo === "file") {
                 const $label = $("<label>", {
-                    for: settings.idCampo,
-                    text: settings.rotulo
+                    for: parametros.idCampo,
+                    text: parametros.rotulo
                 });
-                settings.$coluna.append($label, $campo.addClass("form-control"));
+                parametros.$coluna.append($label, $campo.addClass("form-control"));
 
                 // Elemento para exibir os links de arquivos
                 const $links = $("<div>", { class: "links mt-1" });
-                settings.$coluna.append($links);
+                parametros.$coluna.append($links);
 
                 $campo.on("change", function() {
                     $links.empty();
@@ -117,6 +123,7 @@ const tipoParaElemento = {
             $campo.extend({
                 definirObrigatoriedade(obrigatorio) {
                     $campo.prop("aria-required", obrigatorio).prop("required", obrigatorio);
+
                     if (obrigatorio) {
                         $campo.on("blur.obrigatorio", verificarPreenchimento);
                     } else {
@@ -132,31 +139,38 @@ const tipoParaElemento = {
                         }
                     }
                 },
+
                 definirVisibilidade(visivel) {
-                    settings.$coluna.toggle(visivel);
+                    parametros.$coluna.toggle(visivel);
                 },
+
                 definirEdicao(editavel) {
                     $campo.prop("disabled", !editavel);
                 },
+
                 definirValidez(valido) {
                     $campo.prop("aria-invalid", !valido).toggleClass("is-invalid", !valido);
                 },
+
                 configurarMascara(mascara, opcoes) {
                     $campo.mask(mascara, opcoes || { clearIfNotMatch: true });
                 },
+
                 adicionarEvento(evento, funcao) {
                     $campo.on(evento, funcao);
                 },
+
                 removerEvento(evento) {
                     $campo.off(evento);
                 },
+
                 definirFeedback(mensagem) {
                     const $feedback = $("<div>", {
                         text: mensagem,
                         class: "feedback",
                         css: {display: "none"}
                     });
-                    settings.$coluna.append($feedback);
+                    parametros.$coluna.append($feedback);
                     $campo.on("focus feedback", function() {
                         $feedback.toggle();
                     });

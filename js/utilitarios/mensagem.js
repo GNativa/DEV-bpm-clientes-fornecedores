@@ -43,11 +43,15 @@ const Mensagem = (() => {
         }
         else {
             elementoToast.on("click", function() {
-               toast.hide();
+                toast.hide();
             });
 
             setTimeout(function() {
                 toast.hide();
+
+                setTimeout(function () {
+                    elementoToast.remove();
+                }, 20000);
             }, segundosTimeout * 1000);
         }
     }
