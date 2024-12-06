@@ -15,11 +15,11 @@ const Mensagem = (() => {
             throw new Error(`Tipo de mensagem "${tipo}" não suportado.`);
         }
 
-        const elementoToast = $(`<div class="toast" role="alert" aria-live="assertive" aria-atomic="true"></div>`);
-        const cabecalho = $(`<div class="toast-header"></div>`);
-        const icone = $(`<i class="bi ${tiposDeMensagem[tipo]} me-2 fs-5"></i>`);
-        const titulo = $(`<strong class="me-auto titulo-p">${textoTitulo}</strong>`);
-        const corpo = $(`<div class="toast-body texto-mensagem">${conteudo}</div>`);
+        const elementoToast = $(`<div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false"></div>`);
+            const cabecalho = $(`<div class="toast-header"></div>`);
+                const icone = $(`<i class="bi ${tiposDeMensagem[tipo]} me-2 fs-5"></i>`);
+                const titulo = $(`<strong class="me-auto titulo-p">${textoTitulo}</strong>`);
+            const corpo = $(`<div class="toast-body texto-mensagem">${conteudo}</div>`);
 
         const toast = bootstrap.Toast.getOrCreateInstance(elementoToast[0]);
 
