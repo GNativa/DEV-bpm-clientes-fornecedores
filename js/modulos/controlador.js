@@ -11,6 +11,7 @@ const Controlador = (() => {
         "revisao": ["documento", "razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "estado", "cidade", "logradouro", "numero", "bairro",
             "formaPagamento"],
     };
+
     const camposBloqueados = {
         "solicitacao": [],
         "aprovacaoInicial": ["documento", "cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
@@ -27,12 +28,17 @@ const Controlador = (() => {
             "favBairro", "favNumero", "favComplemento", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco", "retornoRegra"],
         "revisao": ["observacoesAprovacao"]
     };
+
     const camposOcultos = {
         "solicitacao": ["observacoesAprovacao", "retornoRegra", "nomeUsuario"],
         "aprovacaoInicial": ["retornoRegra", "nomeUsuario"],
         "execucao": [],
         "aprovacaoFinanceiro": ["retornoRegra", "nomeUsuario"],
         "revisao": ["retornoRegra", "nomeUsuario"]
+    };
+
+    const fontes = {
+        "consultaCadastro": new Fonte("Clientes", []),
     };
 
     // Variáveis para uso na geração e validação do formulário
@@ -59,14 +65,25 @@ const Controlador = (() => {
         onError: _rollback,
     });
 
+    function carregarFontes(dadosPlataforma) {
+        const token = dadosPlataforma["token"]["access_token"];
+
+        for (const nomeFonte in fontes) {
+            Consultor.carregarFonte(fontes[nomeFonte], token)
+                .then((dados) => {
+                    fontes[nomeFonte].dados = dados;
+                    console.log(dados);
+                });
+        }
+    }
+
     // Função de inicialização do formulário chamada pela API do workflow
     function _init(data, info) {
         inicializar();
         const { initialVariables } = data["loadContext"];
         console.log(initialVariables);
 
-        info
-            ["getUserData"]()
+        info["getUserData"]()
             .then(function (user) {
                 console.log(user);
                 /*
@@ -83,13 +100,10 @@ const Controlador = (() => {
                  */
             })
             .then(function () {
-                info["getPlatformData"]().then(function (platformData) {
-                    console.log(platformData);
-                });
-            });
+                info["getPlatformData"]().then(carregarFontes);
+            });1
 
-        info
-            ["getInfoFromProcessVariables"]()
+        info["getInfoFromProcessVariables"]()
             .then(function (data) {
                 console.log(data);
 
@@ -251,16 +265,12 @@ const Controlador = (() => {
             return;
         }
 
-        inicializado = true;
-
         // Construção dos campos do formulário
         gerarFormulario();
-
         // Listagem dos IDs de todos os campos
         // listarCampos();
-
-        // Configuração de eventos, máscaras, validações, consultas, etc.
         definirEstadoInicial();
+        inicializado = true;
     }
 
     const definirEstadoInicial = () => {
@@ -548,7 +558,7 @@ const Controlador = (() => {
             return;
         }
 
-        if (cnpj === "" || (cnpj.length < 14 && campoRazaoSocial.val() !== "")) {
+        if (cnpj === "" || (cnpj.length < 14 && campoRazaoSocial.val() === "")) {
             if (origemConsulta === "cadastro") {
                 cnpjInaptoCadastro = false;
                 campos["cadastroComRestricao"].campo.prop("checked", false);
