@@ -47,7 +47,8 @@ const Controlador = (() => {
     let inicializado = false;
 
     // Variáveis para uso em validações, consultas, etc.
-    let cnpjInaptoCadastro = false, cnpjInaptoTitular = false;
+    let cnpjInaptoCadastro = false, cnpjInaptoTitular = false,
+        documentoAnterior = "";
 
     let campos = {},             // Contém todos os campos no formato {"id": Campo}
         secaoAprovacao,              // Seção de aprovação
@@ -88,20 +89,20 @@ const Controlador = (() => {
                 console.log(user);
                 /*
                 {
-                    "id": "b64e1f31-9b9a-42f8-bd0a-7ac34e8b9206",
-                    "username": "carlos.santos@gruponativa-homolog.com.br",
-                    "subject": "carlos.santos",
-                    "fullname": "Carlos Henrique Menezes dos Santos",
-                    "email": "carlos.santos@gruponativa.com.br",
-                    "tenantName": "gruponativa-homologcombr",
+                    "id": "",
+                    "username": "",
+                    "subject": "",
+                    "fullname": "",
+                    "email": "",
+                    "tenantName": "",
                     "tenantLocale": "pt-BR",
                     "locale": "pt-BR"
                 }
                  */
             })
             .then(function () {
-                info["getPlatformData"]().then(carregarFontes);
-            });1
+                //info["getPlatformData"]().then(carregarFontes);
+            });
 
         info["getInfoFromProcessVariables"]()
             .then(function (data) {
@@ -275,9 +276,9 @@ const Controlador = (() => {
 
     const definirEstadoInicial = () => {
         botaoEnviar = $("#enviar");
+        configurarPlugins();
         configurarEtapas();
         configurarEventos();
-        configurarPlugins();
 
         // Opções de máscara
         const opcoesDocumento = {
@@ -518,10 +519,6 @@ const Controlador = (() => {
         }
     }
 
-    const configurarEventos = () => {
-        botaoEnviar.click(enviar);
-    };
-
     const configurarPlugins = () => {
         const tooltipTriggerList =
             document.querySelectorAll(`[data-bs-toggle="tooltip"]`);
@@ -529,6 +526,10 @@ const Controlador = (() => {
             tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl)
         );
     }
+
+    const configurarEventos = () => {
+        botaoEnviar.click(enviar);
+    };
 
     const listarCampos = () => {
         const props = [];
@@ -552,13 +553,16 @@ const Controlador = (() => {
         let razaoSocial, nomeFantasia, cep, estado, cidade, tipoLogradouro, logradouro,
             numero, bairro, complemento, email, ddd1, telefone1, telefone, ddd2, telefone2, telefoneAdicional;
         const carregaveis = $(campoDocumento.classeCarregaveis);
-        const cnpj = campoDocumento.cleanVal();
+        const documento = campoDocumento.cleanVal();
 
-        if (cnpj.length === 14 && campoRazaoSocial.campo.prop("disabled", true) && campoRazaoSocial.val() !== "") {
+        if (documentoAnterior !== "" && documento === documentoAnterior
+            && campoRazaoSocial.campo.prop("disabled")) {
             return;
         }
 
-        if (cnpj === "" || (cnpj.length < 14 && campoRazaoSocial.val() === "")) {
+        documentoAnterior = documento;
+
+        if (documento === "" || (documento.length < 14 && campoRazaoSocial.val() === "")) {
             if (origemConsulta === "cadastro") {
                 cnpjInaptoCadastro = false;
                 campos["cadastroComRestricao"].campo.prop("checked", false);
@@ -568,8 +572,7 @@ const Controlador = (() => {
                 campos["titularComRestricao"].campo.prop("checked", false);
             }
 
-            campoDocumento.campo.trigger("change");
-            carregaveis.not(campoDocumento.campo).val("");
+            limparCampos();
             return;
         }
 
@@ -599,84 +602,139 @@ const Controlador = (() => {
             }
         }
 
-        if (cnpj.length < 14 || !consultar) {
+        if (documento.length < 14 || !consultar) {
             return;
         }
 
         let titulo = "Consulta por CNPJ";
 
         campoDocumento.iniciarCarregamento();
+        consultarCnpjWs();
 
-        $.getJSON(`https://publica.cnpj.ws/cnpj/${cnpj}`, function (dadosCnpj) {
-            campoDocumento.finalizarCarregamento();
+        function consultarCnpjWs() {
+            $.getJSON(`https://publica.cnpj.ws/cnpj/${documento}`, function(dadosCnpj) {
+                campoDocumento.finalizarCarregamento();
 
-            if (origemConsulta === "cadastro") {
-                campos["cadastroComRestricao"].campo.prop("checked", false);
-                cnpjInaptoCadastro = dadosCnpj["estabelecimento"]["situacao_cadastral"].toLowerCase() !== "ativa";
+                if (origemConsulta === "cadastro") {
+                    campos["cadastroComRestricao"].campo.prop("checked", false);
+                    cnpjInaptoCadastro = dadosCnpj["estabelecimento"]["situacao_cadastral"].toLowerCase() !== "ativa";
+                }
+                else {
+                    campos["titularComRestricao"].campo.prop("checked", false);
+                    cnpjInaptoTitular = dadosCnpj["estabelecimento"]["situacao_cadastral"].toLowerCase() !== "ativa";
+                }
+
+                obterDados(dadosCnpj, "cnpjWs");
+                salvarDados();
+                validarObrigatorios();
+            }).fail(function(retorno) {
+                const resposta = retorno["responseJSON"];
+                let mensagem, tipoMensagem;
+
+                switch (resposta["status"]) {
+                    case 400: {
+                        mensagem = "CNPJ inválido.";
+                        tipoMensagem = "aviso";
+                        break;
+                    }
+                    case 404: {
+                        mensagem = "CNPJ não encontrado.";
+                        tipoMensagem = "aviso";
+                        break;
+                    }
+                    case 500: {
+                        mensagem = resposta["detalhes"];
+                        tipoMensagem = "erro";
+                        break;
+                    }
+                    case 429: {
+                        consultarSpeedio();
+                        return;
+                    }
+                    default: {
+                        mensagem = resposta["detalhes"];
+                        tipoMensagem = "aviso";
+                        break;
+                    }
+                }
+
+                campoDocumento.falharCarregamento();
+                console.log(retorno);
+                Mensagem.exibir(titulo, mensagem, tipoMensagem);
+                limparCampos();
+            });
+        }
+
+        function consultarSpeedio() {
+            $.getJSON(`https://api-publica.speedio.com.br/buscarcnpj?cnpj=${documento}`, function(dadosCnpj) {
+                campoDocumento.finalizarCarregamento();
+
+                if ("error" in dadosCnpj) {
+                    Mensagem.exibir(titulo, "CNPJ não encontrado.", "aviso");
+                    return;
+                }
+
+                if (origemConsulta === "cadastro") {
+                    campos["cadastroComRestricao"].campo.prop("checked", false);
+                    cnpjInaptoCadastro = dadosCnpj["STATUS"].toLowerCase() !== "ativa";
+                }
+                else {
+                    campos["titularComRestricao"].campo.prop("checked", false);
+                    cnpjInaptoTitular = dadosCnpj["STATUS"].toLowerCase() !== "ativa";
+                }
+
+                obterDados(dadosCnpj, "speedio");
+                salvarDados();
+                validarObrigatorios();
+            }).fail(function(retorno) {
+                // const resposta = retorno["responseJSON"];
+                let mensagem = "Houve um erro não especificado ao consultar o CNPJ.", tipoMensagem = "aviso";
+                campoDocumento.falharCarregamento();
+                console.log(retorno);
+                Mensagem.exibir(titulo, mensagem, tipoMensagem);
+            });
+        }
+
+        function obterDados(dadosCnpj, apiOrigem) {
+            if (apiOrigem === "cnpjWs") {
+                razaoSocial = dadosCnpj["razao_social"];
+                nomeFantasia = dadosCnpj["estabelecimento"]["nome_fantasia"] ?? "";
+                cep = dadosCnpj["estabelecimento"]["cep"];
+                estado = dadosCnpj["estabelecimento"]["estado"]["sigla"];
+                cidade = dadosCnpj["estabelecimento"]["cidade"]["nome"];
+                tipoLogradouro = dadosCnpj["estabelecimento"]["tipo_logradouro"] ?? "";
+                logradouro = (tipoLogradouro !== "" ? (tipoLogradouro + " ") : "") + dadosCnpj["estabelecimento"]["logradouro"];
+                numero = dadosCnpj["estabelecimento"]["numero"];
+                bairro = dadosCnpj["estabelecimento"]["bairro"];
+                complemento = dadosCnpj["estabelecimento"]["complemento"] ?? "";
+                email = dadosCnpj["estabelecimento"]["email"];
+                ddd1 = dadosCnpj["estabelecimento"]["ddd1"] ?? "";
+                telefone1 = dadosCnpj["estabelecimento"]["telefone1"] ?? "";
+                telefone = ddd1 + telefone1;
+                ddd2 = dadosCnpj["estabelecimento"]["ddd2"] ?? "";
+                telefone2 = dadosCnpj["estabelecimento"]["telefone2"] ?? "";
+                telefoneAdicional = ddd2 + telefone2;
+            }
+            else if (apiOrigem === "speedio") {
+                razaoSocial = dadosCnpj["RAZAO SOCIAL"];
+                nomeFantasia = dadosCnpj["NOME FANTASIA"] ?? "";
+                cep = dadosCnpj["CEP"];
+                estado = dadosCnpj["UF"];
+                cidade = dadosCnpj["MUNICIPIO"];
+                tipoLogradouro = dadosCnpj["TIPO LOGRADOURO"] ?? "";
+                logradouro = (tipoLogradouro !== "" ? (tipoLogradouro + " ") : "") + dadosCnpj["LOGRADOURO"];
+                numero = dadosCnpj["NUMERO"];
+                bairro = dadosCnpj["BAIRRO"];
+                complemento = dadosCnpj["COMPLEMENTO"] ?? "";
+                email = dadosCnpj["EMAIL"];
+                ddd1 = dadosCnpj["DDD"] ?? "";
+                telefone1 = dadosCnpj["TELEFONE"] ?? "";
+                telefone = ddd1 + telefone1;
+                telefoneAdicional = "";
             }
             else {
-                campos["titularComRestricao"].campo.prop("checked", false);
-                cnpjInaptoTitular = dadosCnpj["estabelecimento"]["situacao_cadastral"].toLowerCase() !== "ativa";
+                throw new Error(`API "${apiOrigem}" não implementada para realizar consultas por CNPJ.`);
             }
-
-            obterDados(dadosCnpj);
-            salvarDados();
-            validarObrigatorios();
-        }).fail(function(retorno) {
-            const resposta = retorno["responseJSON"];
-            let mensagem, tipoMensagem;
-
-            switch (resposta["status"]) {
-                case 400: {
-                    mensagem = "CNPJ inválido.";
-                    tipoMensagem = "aviso";
-                    break;
-                }
-                case 404: {
-                    mensagem = "CNPJ não encontrado.";
-                    tipoMensagem = "aviso";
-                    break;
-                }
-                case 429: {
-                    mensagem = resposta["detalhes"];
-                    tipoMensagem = "aviso";
-                    break;
-                }
-                case 500: {
-                    mensagem = resposta["detalhes"];
-                    tipoMensagem = "erro";
-                    break;
-                }
-                default: {
-                    mensagem = resposta["detalhes"];
-                    tipoMensagem = "aviso";
-                    break;
-                }
-            }
-
-            campoDocumento.falharCarregamento();
-            console.log(retorno);
-            Mensagem.exibir(titulo, mensagem, tipoMensagem);
-        });
-
-        function obterDados(dadosCnpj) {
-            razaoSocial = dadosCnpj["razao_social"];
-            nomeFantasia = dadosCnpj["estabelecimento"]["nome_fantasia"] ?? "";
-            cep = dadosCnpj["estabelecimento"]["cep"];
-            estado = dadosCnpj["estabelecimento"]["estado"]["sigla"];
-            cidade = dadosCnpj["estabelecimento"]["cidade"]["nome"];
-            tipoLogradouro = dadosCnpj["estabelecimento"]["tipo_logradouro"] ?? "";
-            logradouro = (tipoLogradouro !== "" ? (tipoLogradouro + " ") : "") + dadosCnpj["estabelecimento"]["logradouro"];
-            numero = dadosCnpj["estabelecimento"]["numero"];
-            bairro = dadosCnpj["estabelecimento"]["bairro"];
-            complemento = dadosCnpj["estabelecimento"]["complemento"] ?? "";
-            email = dadosCnpj["estabelecimento"]["email"];
-            ddd1 = dadosCnpj["estabelecimento"]["ddd1"] ?? "";
-            telefone1 = dadosCnpj["estabelecimento"]["telefone1"] ?? "";
-            telefone = ddd1 + telefone1;
-            ddd2 = dadosCnpj["estabelecimento"]["ddd2"] ?? "";
-            telefone2 = dadosCnpj["estabelecimento"]["telefone2"] ?? "";
-            telefoneAdicional = ddd2 + telefone2;
         }
 
         function salvarDados() {
@@ -693,10 +751,15 @@ const Controlador = (() => {
             campoEmailContato.val(email);
             campoTelefone.val(telefone);
 
-            if (campoContatoAdicional !== null && campoContatoAdicional !== undefined) {
+            if (campoContatoAdicional) {
                 campoContatoAdicional.configurarMascara("(00) 0000-00009");
                 campoContatoAdicional.val(telefoneAdicional);
             }
+        }
+
+        function limparCampos() {
+            campoDocumento.campo.trigger("change");
+            carregaveis.not(campoDocumento.campo).val("");
         }
 
         function validarObrigatorios() {
@@ -761,39 +824,6 @@ const Controlador = (() => {
                 campoCep.falharCarregamento();
             });
         }
-
-        /*
-        function consultarRepublicaVirtual() {
-            const url = `http://cep.republicavirtual.com.br/web_cep.php?cep=${cep}&formato=json`;
-            const log = "Falha na consulta de CEP na República Virtual.";
-
-            $.getJSON(url, function(dadosCep) {
-                if (dadosCep["resultado"] === "0") {
-                    console.log(log);
-                    campoCep.falharCarregamento(mensagem);
-                    return;
-                }
-
-                const estado = dadosCep["uf"];
-                const cidade = dadosCep["cidade"];
-                const tipoLogradouro = dadosCep["tipo_logradouro"];
-                const logradouro = (tipoLogradouro === "" ? "" : (tipoLogradouro + " ")) + dadosCep["logradouro"];
-                const bairro = dadosCep["bairro"];
-
-                campoCep.finalizarCarregamento();
-
-                campoEstado.val(estado)//.trigger("blur");
-                campoCidade.val(cidade)//.trigger("blur");
-                campoLogradouro.val(logradouro)//.trigger("blur");
-                campoBairro.val(bairro)//.trigger("blur");
-
-            }).fail(function () {
-                console.log(log);
-                campoCep.falharCarregamento(mensagem);
-            });
-        }
-
-         */
     }
 
     /*
