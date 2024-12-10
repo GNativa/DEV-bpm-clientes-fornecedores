@@ -101,7 +101,11 @@ const Controlador = (() => {
                  */
             })
             .then(function () {
-                //info["getPlatformData"]().then(carregarFontes);
+                /*
+                info["getPlatformData"]().then((dados) => {
+                    carregarFontes(dados);
+                });
+                 */
             });
 
         info["getInfoFromProcessVariables"]()
@@ -612,7 +616,7 @@ const Controlador = (() => {
         consultarCnpjWs();
 
         function consultarCnpjWs() {
-            $.getJSON(`https://publica.cnpj.ws/cnpj/${documento}`, function(dadosCnpj) {
+            $.getJSON(`https://publica.cnpj.ws/cnpj/${documento}`, function (dadosCnpj) {
                 campoDocumento.finalizarCarregamento();
 
                 if (origemConsulta === "cadastro") {
@@ -627,7 +631,7 @@ const Controlador = (() => {
                 obterDados(dadosCnpj, "cnpjWs");
                 salvarDados();
                 validarObrigatorios();
-            }).fail(function(retorno) {
+            }).fail(function (retorno) {
                 const resposta = retorno["responseJSON"];
                 let mensagem, tipoMensagem;
 
@@ -666,7 +670,7 @@ const Controlador = (() => {
         }
 
         function consultarSpeedio() {
-            $.getJSON(`https://api-publica.speedio.com.br/buscarcnpj?cnpj=${documento}`, function(dadosCnpj) {
+            $.getJSON(`https://api-publica.speedio.com.br/buscarcnpj?cnpj=${documento}`, function (dadosCnpj) {
                 campoDocumento.finalizarCarregamento();
 
                 if ("error" in dadosCnpj) {
@@ -686,7 +690,7 @@ const Controlador = (() => {
                 obterDados(dadosCnpj, "speedio");
                 salvarDados();
                 validarObrigatorios();
-            }).fail(function(retorno) {
+            }).fail(function (retorno) {
                 // const resposta = retorno["responseJSON"];
                 let mensagem = "Houve um erro não especificado ao consultar o CNPJ.", tipoMensagem = "aviso";
                 campoDocumento.falharCarregamento();
@@ -706,7 +710,7 @@ const Controlador = (() => {
                 logradouro = (tipoLogradouro !== "" ? (tipoLogradouro + " ") : "") + dadosCnpj["estabelecimento"]["logradouro"];
                 numero = dadosCnpj["estabelecimento"]["numero"];
                 bairro = dadosCnpj["estabelecimento"]["bairro"];
-                complemento = dadosCnpj["estabelecimento"]["complemento"] ?? "";
+                complemento = dadosCnpj["estabelecimento"]["complemento"].replace(/\s\s+/g, " ") ?? "";
                 email = dadosCnpj["estabelecimento"]["email"];
                 ddd1 = dadosCnpj["estabelecimento"]["ddd1"] ?? "";
                 telefone1 = dadosCnpj["estabelecimento"]["telefone1"] ?? "";
@@ -797,7 +801,7 @@ const Controlador = (() => {
         function consultarViaCep() {
             const url = `https://viacep.com.br/ws/${cep}/json`;
 
-            $.getJSON(url, function(dadosCep) {
+            $.getJSON(url, function (dadosCep) {
                 if ("erro" in dadosCep) {
                     campoCep.falharCarregamento();
                     Mensagem.exibir(titulo, mensagem, "aviso");
@@ -817,7 +821,7 @@ const Controlador = (() => {
                 campoLogradouro.val(logradouro);
                 campoBairro.val(bairro);
                 campoComplemento.val(complemento);
-            }).fail(function(retorno) {
+            }).fail(function (retorno) {
                 console.log(retorno);
                 mensagem = "Houve um erro ao realizar a consulta por CEP. Tente novamente mais tarde.";
                 Mensagem.exibir(titulo, mensagem, "erro");
