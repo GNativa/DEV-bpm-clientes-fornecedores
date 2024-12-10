@@ -33,7 +33,7 @@ class Validador {
             .filter(function () {
                 return (this.type === "checkbox" && !this.checked) || (this.type !== "checkbox" && this.value === "")
             })
-            .addClass("nao-preenchido")
+            .addClass("invalido")
             .trigger("change");
     }
 
@@ -42,8 +42,7 @@ class Validador {
     }
 
     formularioValido() {
-        return $(".nao-preenchido:visible").length === 0
-            && $(".is-invalid:visible").length === 0;
+        return $(".invalido:visible").length === 0 && $(".nao-preenchido:visible").length === 0;
     }
 
     configurarValidacoes() {

@@ -328,6 +328,16 @@ const Controlador = (() => {
                 [campos["documento"]],
             ),
             new Validacao(() => {
+                    const documento = campos["documentoConta"].cleanVal();
+
+                    return campos["formaPagamento"].val() === "3"
+                        && (documento.length !== 11 && documento.length !== 14);
+                },
+                "Insira um documento completo.",
+                [campos["documentoConta"]],
+                [campos["documentoConta"]],
+            ),
+            new Validacao(() => {
                     return campos["documento"].cleanVal().length <= 11;
                 },
                 null,
@@ -367,13 +377,40 @@ const Controlador = (() => {
                 [campos["documentoConta"]]
             ),
             new Validacao(() => {
-                    const documentoCadastro = campos["documento"].val();
-                    const documentoConta = campos["documentoConta"].val();
+                    const documentoCadastro = campos["documento"].cleanVal();
+                    const documentoConta = campos["documentoConta"].cleanVal();
+
+                    return campos["formaPagamento"].val() === "3"
+                        && ((documentoCadastro !== "") && (documentoConta !== ""))
+                        && (documentoCadastro.length === 14 && documentoConta.length === 14)
+                        && (documentoCadastro.substring(0, 8) !== documentoConta.substring(0, 8));
+                },
+                "A raiz do CNPJ do favorecido (8 primeiros dígitos) deve ser a mesma do CNPJ do cadastro.",
+                [campos["documento"], campos["documentoConta"]],
+                [campos["documentoConta"]]
+            ),
+            new Validacao(() => {
+                    const documentoCadastro = campos["documento"].cleanVal();
+                    const documentoConta = campos["documentoConta"].cleanVal();
+
+                    return campos["formaPagamento"].val() === "3"
+                        && ((documentoCadastro !== "") && (documentoConta !== ""))
+                        && (documentoCadastro.length === 11 && documentoConta.length === 11)
+                        && documentoCadastro !== documentoConta;
+                },
+                "Insira o mesmo CPF digitado nos dados principais.",
+                [campos["documento"], campos["documentoConta"]],
+                [campos["documentoConta"]]
+            ),
+            new Validacao(() => {
+                    const documentoCadastro = campos["documento"].cleanVal();
+                    const documentoConta = campos["documentoConta"].cleanVal();
 
                     return campos["formaPagamento"].val() === "3"
                         && ((documentoCadastro !== "") && (documentoConta !== ""))
                         && (documentoCadastro.length === documentoConta.length)
-                        && (documentoCadastro !== documentoConta);
+                        && (documentoCadastro !== documentoConta)
+                        && (documentoCadastro.length === 14 && documentoConta.length === 14);
                 },
                 null,
                 [campos["documento"], campos["documentoConta"]],
@@ -403,16 +440,6 @@ const Controlador = (() => {
                 null,
                 null,
                 [campos["cadastroComRestricao"]]
-            ),
-            new Validacao(() => {
-                    const documento = campos["documentoConta"].cleanVal();
-
-                    return campos["formaPagamento"].val() === 3
-                        && ((documento.length > 11 && documento.length < 14) || (documento.length > 0 && documento.length < 11));
-                },
-                "Insira um documento completo.",
-                [campos["documentoConta"]],
-                [campos["documentoConta"]],
             ),
             new Validacao(() => {
                     return campos["documentoConta"].val() !== campos["documento"].val()
@@ -559,13 +586,6 @@ const Controlador = (() => {
         const carregaveis = $(campoDocumento.classeCarregaveis);
         const documento = campoDocumento.cleanVal();
 
-        if (documentoAnterior !== "" && documento === documentoAnterior
-            && campoRazaoSocial.campo.prop("disabled")) {
-            return;
-        }
-
-        documentoAnterior = documento;
-
         if (documento === "" || (documento.length < 14 && campoRazaoSocial.val() === "")) {
             if (origemConsulta === "cadastro") {
                 cnpjInaptoCadastro = false;
@@ -606,9 +626,10 @@ const Controlador = (() => {
             }
         }
 
-        if (documento.length < 14 || !consultar) {
+        if (documento.length < 14 || !consultar || (documentoAnterior !== "" && documento === documentoAnterior)) {
             return;
         }
+        documentoAnterior = documento;
 
         let titulo = "Consulta por CNPJ";
 
@@ -710,7 +731,7 @@ const Controlador = (() => {
                 logradouro = (tipoLogradouro !== "" ? (tipoLogradouro + " ") : "") + dadosCnpj["estabelecimento"]["logradouro"];
                 numero = dadosCnpj["estabelecimento"]["numero"];
                 bairro = dadosCnpj["estabelecimento"]["bairro"];
-                complemento = dadosCnpj["estabelecimento"]["complemento"].replace(/\s\s+/g, " ") ?? "";
+                complemento = (dadosCnpj["estabelecimento"]["complemento"] ?? "").replace(/\s\s+/g, " ");
                 email = dadosCnpj["estabelecimento"]["email"];
                 ddd1 = dadosCnpj["estabelecimento"]["ddd1"] ?? "";
                 telefone1 = dadosCnpj["estabelecimento"]["telefone1"] ?? "";

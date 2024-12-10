@@ -114,7 +114,7 @@ select[required], input[type="file"][required] {
     border-bottom-width: thin;
 }
 
-.nao-preenchido {
+.invalido, .nao-preenchido {
     border-bottom-color: var(--bs-form-invalid-color);
     border-bottom-width: medium;
 }

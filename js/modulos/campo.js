@@ -320,10 +320,10 @@ class Campo {
         campo.prop("aria-invalid", !valido);
 
         if (valido) {
-            campo.removeClass("is-invalid");
+            campo.removeClass("invalido");
         }
         else {
-            campo.addClass("is-invalid");
+            campo.addClass("invalido");
         }
     }
 
