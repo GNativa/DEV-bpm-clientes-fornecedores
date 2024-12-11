@@ -262,7 +262,7 @@ const Controlador = (() => {
     }
 
     function _rollback() {
-
+        // A implementar.
     }
 
     const inicializar = () => {
