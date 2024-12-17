@@ -1148,7 +1148,7 @@ const Controlador = (() => {
         ];
 
         salvarCampos(camposContaBancaria);
-        secaoContaBancaria = new Secao("contaBancaria", "Conta bancária",  camposContaBancaria);
+        secaoContaBancaria = new Secao("contaBancaria", "Conta bancária", camposContaBancaria);
         secaoContaBancaria.gerar();
 
         const camposDetalhesDocumentos = [
