@@ -34,7 +34,8 @@ class Validador {
                 return (this.type === "checkbox" && !this.checked) || (this.type !== "checkbox" && this.value === "")
             })
             // .addClass("invalido")
-            .trigger("change");
+            .trigger("change")
+            .trigger("blur.obrigatorio");
     }
 
     validarCamposObrigatorios() {
