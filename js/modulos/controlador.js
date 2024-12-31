@@ -15,7 +15,7 @@ const Controlador = (() => {
     const camposBloqueados = {
         "solicitacao": [],
         "aprovacaoInicial": ["documento", "cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
-            "ramoAtividade", "inscricaoEstadual", "cep", "estado", "cidade", "logradouro", "numero", "bairro", "complemento", "enderecoCorresp",
+            "ramoAtividade", "cep", "estado", "cidade", "logradouro", "numero", "bairro", "complemento", "enderecoCorresp",
             "nomeContato", "emailContato", "emailAdicional", "telefone", "celular", "contatoAdicional", "formaPagamento", "banco", "agenciaDigito",
             "contaDigito", "tipoConta", "documentoConta", "titularConta", "favNomeFantasia", "favCep", "favEstado", "favCidade", "favLogradouro",
             "favBairro", "favNumero", "favComplemento", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco",
@@ -23,8 +23,8 @@ const Controlador = (() => {
         "execucao": [],
         "aprovacaoFinanceiro": ["documento", "cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
             "ramoAtividade", "inscricaoEstadual", "cep", "estado", "cidade", "logradouro", "numero", "bairro", "complemento", "enderecoCorresp",
-            "nomeContato", "emailContato", "emailAdicional", "telefone", "celular", "contatoAdicional", "formaPagamento", "banco", "agenciaDigito",
-            "contaDigito", "tipoConta", "documentoConta", "titularConta", "favNomeFantasia", "favCep", "favEstado", "favCidade", "favLogradouro",
+            "nomeContato", "emailContato", "emailAdicional", "telefone", "celular", "contatoAdicional", "formaPagamento",
+            "documentoConta", "titularConta", "favNomeFantasia", "favCep", "favEstado", "favCidade", "favLogradouro",
             "favBairro", "favNumero", "favComplemento", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco", "retornoRegra"],
         "revisao": ["observacoesAprovacao"]
     };
