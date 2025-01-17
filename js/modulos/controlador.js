@@ -123,7 +123,8 @@ const Controlador = (() => {
 
                     campos["observacoesAprovacao"].val(map.get("observacoesAprovacao") || "");
                     campos["documento"].val(map.get("documento") || "");
-                    campos["cadastroComRestricao"].campo.prop("checked", (map.get("cadastroComRestricao") ?? "false") === "true");
+                    cnpjInaptoCadastro = (map.get("cadastroComRestricao") ?? "false") === "true";
+                    campos["cadastroComRestricao"].campo.prop("checked", cnpjInaptoCadastro);
                     campos["razaoSocial"].val(map.get("razaoSocial") || "");
                     campos["nomeFantasia"].val(map.get("nomeFantasia") || "");
                     campos["mercadoExterior"].campo.prop("checked", (map.get("mercadoExterior") ?? "false") === "true");
@@ -150,6 +151,8 @@ const Controlador = (() => {
                     campos["contaDigito"].val(map.get("contaDigito") || "");
                     campos["tipoConta"].val(map.get("tipoConta") || "");
                     campos["documentoConta"].val(map.get("documentoConta") || "");
+                    cnpjInaptoTitular = (map.get("titularComRestricao") ?? "false") === "true";
+                    campos["titularComRestricao"].campo.prop("checked", cnpjInaptoTitular);
                     campos["titularConta"].val(map.get("titularConta") || "");
                     campos["favNomeFantasia"].val(map.get("favNomeFantasia") || "");
                     campos["favCep"].val(map.get("favCep") || "");
@@ -231,6 +234,7 @@ const Controlador = (() => {
         dados.contaDigito = campos["contaDigito"].val();
         dados.tipoConta = campos["tipoConta"].val();
         dados.documentoConta = campos["documentoConta"].cleanVal();
+        dados.titularComRestricao = campos["titularComRestricao"].campo.prop("checked");
         dados.titularConta = campos["titularConta"].val();
         dados.favNomeFantasia = campos["favNomeFantasia"].val();
         dados.favCep = campos["favCep"].val();
