@@ -13,20 +13,20 @@ const Controlador = (() => {
     };
 
     const camposBloqueados = {
-        "solicitacao": [],
-        "aprovacaoInicial": ["documento", "cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
+        "solicitacao": ["status"],
+        "aprovacaoInicial": ["documento", "status", "cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
             "ramoAtividade", "cep", "estado", "cidade", "logradouro", "numero", "bairro", "complemento", "enderecoCorresp",
             "nomeContato", "emailContato", "emailAdicional", "telefone", "celular", "contatoAdicional", "formaPagamento", "banco", "agenciaDigito",
             "contaDigito", "tipoConta", "documentoConta", "titularConta", "favNomeFantasia", "favCep", "favEstado", "favCidade", "favLogradouro",
             "favBairro", "favNumero", "favComplemento", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco",
             "comprovanteContaBancaria", "retornoRegra"],
         "execucao": [],
-        "aprovacaoFinanceiro": ["documento", "cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
+        "aprovacaoFinanceiro": ["documento", "status", "cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
             "ramoAtividade", "inscricaoEstadual", "cep", "estado", "cidade", "logradouro", "numero", "bairro", "complemento", "enderecoCorresp",
             "nomeContato", "emailContato", "emailAdicional", "telefone", "celular", "contatoAdicional", "formaPagamento",
             "documentoConta", "titularConta", "favNomeFantasia", "favCep", "favEstado", "favCidade", "favLogradouro",
             "favBairro", "favNumero", "favComplemento", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco", "retornoRegra"],
-        "revisao": ["observacoesAprovacao"]
+        "revisao": ["observacoesAprovacao", "status"]
     };
 
     const camposOcultos = {
@@ -123,6 +123,7 @@ const Controlador = (() => {
 
                     campos["observacoesAprovacao"].val(map.get("observacoesAprovacao") || "");
                     campos["documento"].val(map.get("documento") || "");
+                    campos["status"].val(map.get("status") || "");
                     campos["cadastroComRestricao"].campo.prop("checked", (map.get("cadastroComRestricao") ?? "false") === "true");
                     campos["razaoSocial"].val(map.get("razaoSocial") || "");
                     campos["nomeFantasia"].val(map.get("nomeFantasia") || "");
@@ -204,6 +205,7 @@ const Controlador = (() => {
 
         dados.observacoesAprovacao = campos["observacoesAprovacao"].val();
         dados.documento = campos["documento"].cleanVal(); // Valor do campo sem máscara
+        dados.status = campos["status"].val();
         dados.cadastroComRestricao = campos["cadastroComRestricao"].campo.prop("checked"); // Estado do checkbox (marcado ou não marcado)
         dados.razaoSocial = campos["razaoSocial"].val();
         dados.nomeFantasia = campos["nomeFantasia"].val();
@@ -429,6 +431,17 @@ const Controlador = (() => {
                 "A empresa está com restrição. Marque a caixa ao lado para prosseguir com o cadastro.",
                 [campos["documento"], campos["cadastroComRestricao"]],
                 [campos["documento"]]
+            ),
+            new Validacao(() => {
+                    return cnpjInaptoCadastro;
+                },
+                null,
+                [campos["documento"]],
+                null,
+                null,
+                null,
+                null,
+                [campos["status"]],
             ),
             new Validacao(() => {
                     return cnpjInaptoCadastro && campos["documento"].cleanVal().length === 14;
@@ -908,6 +921,9 @@ const Controlador = (() => {
             new Campo(
                 "documento", "CPF/CNPJ", "texto", 2,
                 "Pressione TAB ou selecione outro campo para efetuar uma consulta com o documento informado"
+            ),
+            new Campo(
+                "status", "Status", "texto", 2, "Status do cadastro"
             ),
             new Campo(
                 "cadastroComRestricao", "Solicitar aprovação de cadastro com restrição",
