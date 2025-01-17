@@ -23,7 +23,7 @@ const tipoParaElemento = {
 };
 
 class Campo {
-    constructor(id, rotulo, tipo, largura, dica, altura, propriedadesAdicionais) {
+    constructor(id, rotulo, tipo, largura, dica, altura, listaFiltro, propriedadesAdicionais) {
         if (document.getElementById(id) !== null) {
             throw Error(`Já existe um campo com o id "${id}".`);
         }
@@ -36,8 +36,11 @@ class Campo {
         this.rotulo = rotulo;
         this.tipo = tipo.toLowerCase();
         this.largura = largura;
-        this.altura = altura !== undefined && altura !== null ? `${altura}lh` : null;
+        this.altura = (altura !== undefined && altura !== null) ? `${altura}lh` : null;
         this.dica = dica ?? null;
+        // A implementar, deve guardar a lista que serve como filtro para este campo
+        // caso seja uma lista
+        this.listaFiltro = listaFiltro ?? null;
         this.propriedadesAdicionais = propriedadesAdicionais ?? {};
 
         this.obrigatorio = false;
