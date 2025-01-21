@@ -1,3 +1,8 @@
+/*
+    > Formulário
+        - Mantém o estado do formulário, realizando carregamento e salvamento de dados, validações etc.
+ */
+
 const Formulario = (() => {
     // Variáveis para uso em validações, consultas, etc.
     let campos = {};
@@ -6,11 +11,10 @@ const Formulario = (() => {
         documentoAnterior = "";
 
     let secaoAprovacao,              // Seção de aprovação
-        secaoDadosPrincipais,        // Etc.
-        secaoContaBancaria,
+        secaoDadosPrincipais,        // Seção dos dados principais
+        secaoContaBancaria,          // Etc.
         secaoDetalhesDocumentos,
-        secaoControle,
-        botaoEnviar;
+        secaoControle;
 
     // Listas dos IDs dos campos que serão obrigatórios, bloqueados ou ocultos por etapa
     // Formato:
@@ -54,6 +58,10 @@ const Formulario = (() => {
         "consultaCadastro": new Fonte("Clientes", []),
     };
 
+    // obterValidacoes(): array<Validacao>
+    /*
+        Validações a serem usadas no formulário.
+     */
     function obterValidacoes() {
         return [
             new Validacao(() => {
@@ -250,6 +258,11 @@ const Formulario = (() => {
         ];
     }
 
+    // carregarDados(mapa: Map): void
+    /*
+        Extrai os dados do mapa obtido como retorno da API do workflow,
+        repassando-os para os campos e variáveis necessárias.
+     */
     function carregarDados(mapa) {
         campos["observacoesAprovacao"].val(mapa.get("observacoesAprovacao") || "");
         campos["documento"].val(mapa.get("documento") || "");
@@ -311,6 +324,10 @@ const Formulario = (() => {
         );
     }
 
+    // salvarDados(): Promise<{}>
+    /*
+        Guarda os dados de todos os campos em um objeto para uso na função _saveData da API do workflow.
+     */
     async function salvarDados() {
         let dados = {};
 
@@ -371,6 +388,10 @@ const Formulario = (() => {
         return dados;
     }
 
+    // definirEstadoInicial(): void
+    /*
+        Configura máscaras de campos, consultas de APIs e parâmetros diversos.
+     */
     function definirEstadoInicial() {
         // Opções de máscara
         const opcoesDocumento = {
@@ -379,12 +400,14 @@ const Formulario = (() => {
                 campos["documento"].campo.mask(documento.length <= 14 && documento.length > 0 ? mascaras[0] : mascaras[1], op);
             }
         };
+
         const opcoesDocumentoConta = {
             onKeyPress: function (documento, ev, el, op) {
                 const mascaras = ["000.000.000-000", "00.000.000/0000-00"];
                 campos["documentoConta"].campo.mask(documento.length <= 14 && documento.length > 0 ? mascaras[0] : mascaras[1], op);
             }
         };
+
         const opcoesContato = {
             onKeyPress: function (numero, ev, el, op) {
                 const mascaras = ["(00) 0000-00009", "(00) 0 0000-0000"];
@@ -452,6 +475,10 @@ const Formulario = (() => {
         );
     }
 
+    // configurarPlugins(): void
+    /*
+        Configura plugins que necessitam de inicialização na página.
+     */
     function configurarPlugins() {
         const tooltipTriggerList =
             document.querySelectorAll(`[data-bs-toggle="tooltip"]`);
@@ -460,10 +487,18 @@ const Formulario = (() => {
         );
     }
 
+    // configurarEventos(): void
+    /*
+        Configura eventos em elementos diversos.
+     */
     function configurarEventos() {
-        botaoEnviar.click(enviar);
+
     }
 
+    // listarCampos(): void
+    /*
+        Obtém os IDs dos campos na variável campos{} e os lista no console.
+     */
     function listarCampos() {
         const props = [];
 
@@ -761,9 +796,11 @@ const Formulario = (() => {
         secao = new Secao(id, titulo, lista);
      */
 
+    // gerar(): void
+    /*
+        Define os campos do formulário, agrupados por seção, e suas propriedades.
+     */
     function gerar() {
-        botaoEnviar = $("#enviar");
-
         const camposAprovacao = [
             new Campo(
                 "observacoesAprovacao", "Observações de aprovação", "area-texto", 12, null, 5
@@ -1331,15 +1368,14 @@ const Formulario = (() => {
         secaoControle = new Secao("controle", "Controle", camposControle);
     }
 
+    // salvarDados(listaDeCampos: array<Campo>): void
+    /*
+        Salva os campos de uma lista no objeto de campos{} para acesso via ID.
+     */
     function salvarCampos(listaDeCampos) {
         for (const campo of listaDeCampos) {
             campos[campo["id"]] = campo;
         }
-    }
-
-    // Função usada para envios de teste
-    function enviar() {
-        Controlador.validarFormulario();
     }
 
     return {

@@ -1,3 +1,8 @@
+// OpcaoLista(valor: string, conteudo: string)
+/*
+    Opção de uma lista de um <select>.
+ */
+
 class OpcaoLista {
     constructor(valor, conteudo) {
         this.valor = valor;
@@ -5,12 +10,22 @@ class OpcaoLista {
     }
 }
 
+// TipoCampo(elemento: string, tipo: string)
+/*
+    Correspondência de um elemento para um tipo, voltado a elementos do tipo <input>.
+ */
+
 class TipoCampo {
     constructor(elemento, tipo) {
         this.elemento = elemento;
         this.tipo = tipo;
     }
 }
+
+// tipoParaElemento: {string -> TipoCampo}
+/*
+    - Correspondência de um apelido abstraído aos seus elementos de HTML e tipos.
+ */
 
 const tipoParaElemento = {
     "checkbox": new TipoCampo("input", "checkbox"),
@@ -22,6 +37,11 @@ const tipoParaElemento = {
     "data": new TipoCampo("input", "date")
 };
 
+// Campo(id: string, rotulo: string, tipo: string, largura: integer, dica: string, altura: integer,
+//       listaFiltro: array, propriedadesAdicionais: {})
+/*
+    - Representação abstrata de um campo no formulário.
+ */
 class Campo {
     constructor(id, rotulo, tipo, largura, dica, altura, listaFiltro, propriedadesAdicionais) {
         if (document.getElementById(id) !== null) {
@@ -80,6 +100,10 @@ class Campo {
         this.definirEdicao(true);
     }
 
+    // configurarElementoHtml(): void
+    /*
+        Configura os parâmetros e comportamentos do elemento HTML correspondente ao campo e o adiciona à página.
+     */
     configurarElementoHtml() {
         const id = this.id;
         const tipo = this.tipo;
@@ -209,12 +233,20 @@ class Campo {
         return elementoJquery;
     }
 
+    // configurarMascara(mascara: string, opcoes: {}): void
+    /*
+        Configura a máscara do campo e suas opções.
+     */
     configurarMascara(mascara, opcoes) {
         this.opcoesMascara = opcoes ?? this.opcoesMascara;
         this.campo.mask(mascara, opcoes ?? this.opcoesMascara);
         return this;
     }
 
+    // adicionarEvento(evento: string, funcao: function(): void): void
+    /*
+        Configura a máscara e opções de máscara do campo.
+     */
     adicionarEvento(evento, funcao) {
         this.campo.on(evento, funcao);
         return this;

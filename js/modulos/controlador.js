@@ -1,15 +1,15 @@
+// Controlador()
 /*
-    > Controlador
-        - Responsável por inicializar o formulário e prover funcionalidades genéricas
+    Responsável por inicializar o formulário e prover funcionalidades genéricas.
  */
 
 const Controlador = (() => {
-    // Variáveis para uso na geração e validação do formulário
+    // Variáveis para uso na geração e validação do formulário.
     let validador = new Validador();
     let etapa = null;
     let inicializado = false;
 
-    // Interface da API do workflow (BPM) que lida com a inicialização, salvamento de dados e erros do formulário
+    // Interface da API do workflow (BPM) que lida com a inicialização, salvamento de dados e erros do formulário.
     // Função "_rollback" não implementada até o momento
     this.workflowCockpit = workflowCockpit({
         init: _init,
@@ -17,7 +17,12 @@ const Controlador = (() => {
         onError: _rollback,
     });
 
-    // Função de inicialização do formulário chamada pela API do workflow
+    // _init(data: ?, info: ?): void
+    /*
+        Inicialização do formulário através da API do workflow.
+        Também será responsável por carregar as fontes de dados
+        com o uso do token do usuário.
+     */
     function _init(data, info) {
         inicializar();
         const {initialVariables} = data["loadContext"];
@@ -69,6 +74,10 @@ const Controlador = (() => {
             });
     }
 
+    // _saveData(data: ?, info: ?): Promise<{}>
+    /*
+        Valida o formulário e salva os dados na API do Workflow.
+     */
     async function _saveData(data, info) {
         validarFormulario();
 
@@ -84,6 +93,10 @@ const Controlador = (() => {
         // A implementar.
     }
 
+    // inicializar(): void
+    /*
+        Inicializa o formulário, podendo ser através da API ou localmente.
+     */
     function inicializar() {
         if (inicializado) {
             return;
@@ -96,10 +109,15 @@ const Controlador = (() => {
         Formulario.definirEstadoInicial();
 
         configurarEtapas();
+        configurarElementosFixos();
         aplicarValidacoes(Formulario.obterValidacoes());
         inicializado = true;
     }
 
+    // carregarFontes(dadosPlataforma: {}): void
+    /*
+        Carrega as fontes de dados definidas na classe Formulario usando o token de acesso do Senior X.
+     */
     function carregarFontes(dadosPlataforma) {
         const token = dadosPlataforma["token"]["access_token"];
 
@@ -112,6 +130,12 @@ const Controlador = (() => {
         }
     }
 
+    // validarFormulario(): void
+    /*
+        Valida o formulário e exibe uma mensagem conforme o resultado da validação.
+        Caso o formulário seja inválido, um erro é lançado para impedir que a plataforma prossiga
+        com o envio dos dados.
+     */
     function validarFormulario() {
         validador.validarCampos();
 
@@ -129,9 +153,12 @@ const Controlador = (() => {
         }
     }
 
-    // Configuração das etapas com base nos parâmetros da URL
-    // Ex.: https://gnativa.github.io/bpm-clientes-fornecedores/?etapa=solicitacao&
-    // O & ao final é adicionado para considerar os parâmetros inseridos na URL pelo próprio Senior X
+    // configurarEtapas(): void
+    /*
+        Configura as etapas do processo com base nos parâmetros da URL, usando como sufixo "?etapa=nomeDaEtapa&".
+        Ex.: https://gnativa.github.io/bpm-clientes-fornecedores/?etapa=solicitacao&
+        O "&" ao final é adicionado para considerar os parâmetros inseridos na URL pelo próprio Senior X.
+     */
     function configurarEtapas() {
         const url = new URL(window.location.toLocaleString());
         const parametros = url.searchParams;
@@ -164,12 +191,27 @@ const Controlador = (() => {
         }
     }
 
+    // configurarElementosFixos(): void
+    /*
+        Configura opções diversas de elementos fixos, como o botão de enviar utilizado para testes de validação
+        do formulário.
+     */
+    function configurarElementosFixos() {
+        $("#enviar").on("click", function () {
+            validarFormulario();
+        });
+    }
+
+    // aplicarValidacoes(validacoes: array<Validacao>): void
+    /*
+        Define a lista de validações do validador e as configura.
+     */
     function aplicarValidacoes(validacoes) {
         validador.validacoes = validacoes;
         validador.configurarValidacoes();
     }
 
     return {
-        validarFormulario, inicializar
+        inicializar
     };
 })();
