@@ -381,7 +381,7 @@ const Controlador = (() => {
                     return !mercadoExterior || tamanhoDocumento > 0;
                 },
                 null,
-                [campos["documento"]],
+                [campos["documento"], campos["mercadoExterior"]],
                 null,
                 null,
                 [campos["tipoPessoa"]],
@@ -651,7 +651,9 @@ const Controlador = (() => {
                 campos["titularComRestricao"].campo.prop("checked", false);
             }
 
-            limparCampos();
+            if (!campos["mercadoExterior"].campo.prop("checked")) {
+                limparCampos();
+            }
             return;
         }
 
