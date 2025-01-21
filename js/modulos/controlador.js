@@ -369,7 +369,7 @@ const Controlador = (() => {
                 null,
                 [campos["documento"]],
                 null,
-                [campos["documentosPessoaFisica"], campos["comprovanteEndereco"]],
+                null,
                 null,
                 [campos["razaoSocial"], campos["cep"], campos["estado"], campos["cidade"],
                     campos["logradouro"], campos["numero"], campos["bairro"], campos["emailContato"], campos["telefone"]],
