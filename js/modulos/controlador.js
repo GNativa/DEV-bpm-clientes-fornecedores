@@ -1,4 +1,16 @@
 const Controlador = (() => {
+    // Variáveis para uso em validações, consultas, etc.
+    let cnpjInaptoCadastro = false, cnpjInaptoTitular = false,
+        documentoAnterior = "";
+
+    let campos = {},             // Contém todos os campos no formato {"id": Campo}
+        secaoAprovacao,              // Seção de aprovação
+        secaoDadosPrincipais,        // Etc.
+        secaoContaBancaria,
+        secaoDetalhesDocumentos,
+        secaoControle,
+        botaoEnviar;
+
     // Listas dos IDs dos campos que serão obrigatórios, bloqueados ou ocultos por etapa
     // Formato:
     // {"etapa1": ["campo1", "campo2, "campo3"], "etapa2": ["campo1", "campo2"]}
@@ -41,292 +53,8 @@ const Controlador = (() => {
         "consultaCadastro": new Fonte("Clientes", []),
     };
 
-    // Variáveis para uso na geração e validação do formulário
-    let validador = new Validador();
-    let etapa = null;
-    let inicializado = false;
-
-    // Variáveis para uso em validações, consultas, etc.
-    let cnpjInaptoCadastro = false, cnpjInaptoTitular = false,
-        documentoAnterior = "";
-
-    let campos = {},             // Contém todos os campos no formato {"id": Campo}
-        secaoAprovacao,              // Seção de aprovação
-        secaoDadosPrincipais,        // Etc.
-        secaoContaBancaria,
-        secaoDetalhesDocumentos,
-        secaoControle,
-        botaoEnviar;
-
-    // Interface da API do workflow (BPM) que lida com a inicialização, salvamento de dados e erros do formulário
-    // Função "_rollback" não implementada até o momento
-    this.workflowCockpit = workflowCockpit({
-        init: _init,
-        onSubmit: _saveData,
-        onError: _rollback,
-    });
-
-    function carregarFontes(dadosPlataforma) {
-        const token = dadosPlataforma["token"]["access_token"];
-
-        for (const nomeFonte in fontes) {
-            Consultor.carregarFonte(fontes[nomeFonte], token)
-                .then((dados) => {
-                    fontes[nomeFonte].dados = dados;
-                    console.log(dados);
-                });
-        }
-    }
-
-    // Função de inicialização do formulário chamada pela API do workflow
-    function _init(data, info) {
-        inicializar();
-        const { initialVariables } = data["loadContext"];
-        console.log(initialVariables);
-
-        info["getUserData"]()
-            .then(function (user) {
-                console.log(user);
-                /*
-                {
-                    "id": "",
-                    "username": "",
-                    "subject": "",
-                    "fullname": "",
-                    "email": "",
-                    "tenantName": "",
-                    "tenantLocale": "pt-BR",
-                    "locale": "pt-BR"
-                }
-                 */
-            })
-            .then(function () {
-                /*
-                info["getPlatformData"]().then((dados) => {
-                    carregarFontes(dados);
-                });
-                 */
-            });
-
-        info["getInfoFromProcessVariables"]()
-            .then(function (data) {
-                console.log(data);
-
-                if (!info["isRequestNew"]() && Array.isArray(data)) {
-                    const map = new Map();
-
-                    for (let i = 0; i < data.length; i++) {
-                        map.set(data[i].key, data[i].value || "");
-                    }
-
-                    console.log("Carregando dados: ", map);
-
-                    campos["observacoesAprovacao"].val(map.get("observacoesAprovacao") || "");
-                    campos["documento"].val(map.get("documento") || "");
-                    cnpjInaptoCadastro = (map.get("cadastroComRestricao") ?? "false") === "true";
-                    campos["cadastroComRestricao"].campo.prop("checked", cnpjInaptoCadastro);
-                    campos["razaoSocial"].val(map.get("razaoSocial") || "");
-                    campos["nomeFantasia"].val(map.get("nomeFantasia") || "");
-                    campos["mercadoExterior"].campo.prop("checked", (map.get("mercadoExterior") ?? "false") === "true");
-                    campos["fornecedorIndustria"].campo.prop("checked", (map.get("fornecedorIndustria") ?? "false") === "true");
-                    campos["ramoAtividade"].val(map.get("ramoAtividade") || "");
-                    campos["inscricaoEstadual"].val(map.get("inscricaoEstadual") || "");
-                    campos["cep"].val(map.get("cep") || "");
-                    campos["estado"].val(map.get("estado") || "");
-                    campos["cidade"].val(map.get("cidade") || "");
-                    campos["logradouro"].val(map.get("logradouro") || "");
-                    campos["numero"].val(map.get("numero") || "");
-                    campos["bairro"].val(map.get("bairro") || "");
-                    campos["complemento"].val(map.get("complemento") || "");
-                    campos["enderecoCorresp"].val(map.get("enderecoCorresp") || "");
-                    campos["nomeContato"].val(map.get("nomeContato") || "");
-                    campos["emailContato"].val(map.get("emailContato") || "");
-                    campos["emailAdicional"].val(map.get("emailAdicional") || "");
-                    campos["telefone"].val(map.get("telefone") || "");
-                    campos["celular"].val(map.get("celular") || "");
-                    campos["contatoAdicional"].val(map.get("contatoAdicional") || "");
-                    campos["formaPagamento"].val(map.get("formaPagamento") || "");
-                    campos["banco"].val(map.get("banco") || "");
-                    campos["agenciaDigito"].val(map.get("agenciaDigito") || "");
-                    campos["contaDigito"].val(map.get("contaDigito") || "");
-                    campos["tipoConta"].val(map.get("tipoConta") || "");
-                    campos["documentoConta"].val(map.get("documentoConta") || "");
-                    cnpjInaptoTitular = (map.get("titularComRestricao") ?? "false") === "true";
-                    campos["titularComRestricao"].campo.prop("checked", cnpjInaptoTitular);
-                    campos["titularConta"].val(map.get("titularConta") || "");
-                    campos["favNomeFantasia"].val(map.get("favNomeFantasia") || "");
-                    campos["favCep"].val(map.get("favCep") || "");
-                    campos["favEstado"].val(map.get("favEstado") || "");
-                    campos["favCidade"].val(map.get("favCidade") || "");
-                    campos["favLogradouro"].val(map.get("favLogradouro") || "");
-                    campos["favBairro"].val(map.get("favBairro") || "");
-                    campos["favNumero"].val(map.get("favNumero") || "");
-                    campos["favComplemento"].val(map.get("favComplemento") || "");
-                    campos["favEmail"].val(map.get("favEmail") || "");
-                    campos["favTelefone"].val(map.get("favTelefone") || "");
-                    campos["observacoes"].val(map.get("observacoes") || "");
-                    campos["nomeUsuario"].val(map.get("nomeUsuario") || "");
-                    campos["retornoRegra"].val(map.get("retornoRegra") || "");
-                    campos["documentosPessoaFisica"].campo.prop(
-                        "files",
-                        Utilitario.carregarArquivosDeString(map.get("documentosPessoaFisica") || "")
-                    );
-                    campos["comprovanteEndereco"].campo.prop(
-                        "files",
-                        Utilitario.carregarArquivosDeString(map.get("comprovanteEndereco") || "")
-                    );
-                    campos["comprovanteContaBancaria"].campo.prop(
-                        "files",
-                        Utilitario.carregarArquivosDeString(map.get("comprovanteContaBancaria") || "")
-                    );
-
-                    // Disparar eventos dos campos para ativar validações
-                    for (const campo in campos) {
-                        campos[campo].campo.trigger("change");
-                    }
-                }
-            });
-    }
-
-    const validarFormulario = () => {
-        validador.validarCampos();
-
-        const titulo = "Validação";
-        let mensagem = "Dados validados com sucesso.";
-
-        if (!validador.formularioValido()) {
-            mensagem = "Dados inválidos. Preencha todos os campos obrigatórios e verifique as informações inseridas "
-                + "no formulário para prosseguir.";
-            Mensagem.exibir(titulo, mensagem, "aviso");
-            throw new Error(mensagem);
-        }
-        else {
-            Mensagem.exibir(titulo, mensagem, "sucesso");
-        }
-    }
-
-    async function _saveData(data, info) {
-        validarFormulario();
-
-        let dados = {};
-
-        dados.observacoesAprovacao = campos["observacoesAprovacao"].val();
-        dados.documento = campos["documento"].cleanVal(); // Valor do campo sem máscara
-        dados.cadastroComRestricao = campos["cadastroComRestricao"].campo.prop("checked"); // Estado do checkbox (marcado ou não marcado)
-        dados.razaoSocial = campos["razaoSocial"].val();
-        dados.nomeFantasia = campos["nomeFantasia"].val();
-        dados.mercadoExterior = campos["mercadoExterior"].campo.prop("checked");
-        dados.fornecedorIndustria = campos["fornecedorIndustria"].campo.prop("checked");
-        dados.ramoAtividade = campos["ramoAtividade"].val();
-        dados.inscricaoEstadual = campos["inscricaoEstadual"].val();
-        dados.cep = campos["cep"].cleanVal();
-        dados.estado = campos["estado"].val();
-        dados.cidade = campos["cidade"].val();
-        dados.logradouro = campos["logradouro"].val();
-        dados.numero = campos["numero"].val();
-        dados.bairro = campos["bairro"].val();
-        dados.complemento = campos["complemento"].val();
-        dados.enderecoCorresp = campos["enderecoCorresp"].val();
-        dados.nomeContato = campos["nomeContato"].val();
-        dados.emailContato = campos["emailContato"].val();
-        dados.emailAdicional = campos["emailAdicional"].val();
-        dados.telefone = campos["telefone"].cleanVal();
-        dados.celular = campos["celular"].cleanVal();
-        dados.contatoAdicional = campos["contatoAdicional"].cleanVal();
-        dados.formaPagamento = campos["formaPagamento"].val();
-        dados.banco = campos["banco"].val();
-        dados.agenciaDigito = campos["agenciaDigito"].val();
-        dados.contaDigito = campos["contaDigito"].val();
-        dados.tipoConta = campos["tipoConta"].val();
-        dados.documentoConta = campos["documentoConta"].cleanVal();
-        dados.titularComRestricao = campos["titularComRestricao"].campo.prop("checked");
-        dados.titularConta = campos["titularConta"].val();
-        dados.favNomeFantasia = campos["favNomeFantasia"].val();
-        dados.favCep = campos["favCep"].val();
-        dados.favEstado = campos["favEstado"].val();
-        dados.favCidade = campos["favCidade"].val();
-        dados.favLogradouro = campos["favLogradouro"].val();
-        dados.favBairro = campos["favBairro"].val();
-        dados.favNumero = campos["favNumero"].val();
-        dados.favComplemento = campos["favComplemento"].val();
-        dados.favEmail = campos["favEmail"].val();
-        dados.favTelefone = campos["favTelefone"].cleanVal();
-        dados.observacoes = campos["observacoes"].val();
-        dados.documentosPessoaFisica = await Utilitario.salvarArquivosEmString(
-            campos["documentosPessoaFisica"].obterElementoHtml()
-        ); // Salvamento de anexo na forma de uma string
-        dados.comprovanteEndereco = await Utilitario.salvarArquivosEmString(
-            campos["comprovanteEndereco"].obterElementoHtml()
-        );
-        dados.comprovanteContaBancaria = await Utilitario.salvarArquivosEmString(
-            campos["comprovanteContaBancaria"].obterElementoHtml()
-        );
-        dados.nomeUsuario = campos["nomeUsuario"].val();
-        dados.retornoRegra = campos["retornoRegra"].val();
-
-        console.log(dados);
-        return {
-            formData: dados,
-        };
-    }
-
-    function _rollback() {
-        // A implementar.
-    }
-
-    const inicializar = () => {
-        if (inicializado) {
-            return;
-        }
-
-        // Construção dos campos do formulário
-        gerarFormulario();
-        // Listagem dos IDs de todos os campos
-        // listarCampos();
-        definirEstadoInicial();
-        inicializado = true;
-    }
-
-    const definirEstadoInicial = () => {
-        botaoEnviar = $("#enviar");
-        configurarPlugins();
-        configurarEtapas();
-        configurarEventos();
-
-        // Opções de máscara
-        const opcoesDocumento = {
-            onKeyPress: function (documento, ev, el, op) {
-                const mascaras = ["000.000.000-000", "00.000.000/0000-00"];
-                campos["documento"].campo.mask(documento.length <= 14 && documento.length > 0 ? mascaras[0] : mascaras[1], op);
-            }
-        };
-        const opcoesDocumentoConta = {
-            onKeyPress: function (documento, ev, el, op) {
-                const mascaras = ["000.000.000-000", "00.000.000/0000-00"];
-                campos["documentoConta"].campo.mask(documento.length <= 14 && documento.length > 0 ? mascaras[0] : mascaras[1], op);
-            }
-        };
-        const opcoesContato = {
-            onKeyPress: function (numero, ev, el, op) {
-                const mascaras = ["(00) 0000-00009", "(00) 0 0000-0000"];
-                campos["contatoAdicional"].campo.mask(numero.length <= 14 && numero.length > 0 ? mascaras[0] : mascaras[1], op);
-            },
-            clearIfNotMatch: true
-        };
-
-        // Configuração das máscaras
-        campos["documento"].configurarMascara("00.000.000/0000-00", opcoesDocumento);
-        campos["cep"].configurarMascara("00000-000");
-        campos["telefone"].configurarMascara("(00) 0000-0000");
-        campos["celular"].configurarMascara("(00) 0 0000-0000");
-        campos["contatoAdicional"].configurarMascara("(00) 0 0000-0000", opcoesContato);
-
-        campos["documentoConta"].configurarMascara("00.000.000/0000-00", opcoesDocumentoConta);
-        campos["favCep"].configurarMascara("00000-000");
-        campos["favTelefone"].configurarMascara("(00) 0000-0000");
-
-        // Lista de validações
-        validador.validacoes = [
+    function obterValidacoes() {
+        return [
             new Validacao(() => {
                     const documento = campos["documento"].cleanVal();
                     return (documento.length > 11 && documento.length < 14)
@@ -519,8 +247,161 @@ const Controlador = (() => {
                 [campos["titularComRestricao"]],
             ),
         ];
+    }
 
-        validador.configurarValidacoes();
+    function carregarDados(mapa) {
+        campos["observacoesAprovacao"].val(mapa.get("observacoesAprovacao") || "");
+        campos["documento"].val(mapa.get("documento") || "");
+        cnpjInaptoCadastro = (mapa.get("cadastroComRestricao") ?? "false") === "true";
+        campos["cadastroComRestricao"].campo.prop("checked", cnpjInaptoCadastro);
+        campos["razaoSocial"].val(mapa.get("razaoSocial") || "");
+        campos["nomeFantasia"].val(mapa.get("nomeFantasia") || "");
+        campos["mercadoExterior"].campo.prop("checked", (mapa.get("mercadoExterior") ?? "false") === "true");
+        campos["fornecedorIndustria"].campo.prop("checked", (mapa.get("fornecedorIndustria") ?? "false") === "true");
+        campos["ramoAtividade"].val(mapa.get("ramoAtividade") || "");
+        campos["inscricaoEstadual"].val(mapa.get("inscricaoEstadual") || "");
+        campos["cep"].val(mapa.get("cep") || "");
+        campos["estado"].val(mapa.get("estado") || "");
+        campos["cidade"].val(mapa.get("cidade") || "");
+        campos["logradouro"].val(mapa.get("logradouro") || "");
+        campos["numero"].val(mapa.get("numero") || "");
+        campos["bairro"].val(mapa.get("bairro") || "");
+        campos["complemento"].val(mapa.get("complemento") || "");
+        campos["enderecoCorresp"].val(mapa.get("enderecoCorresp") || "");
+        campos["nomeContato"].val(mapa.get("nomeContato") || "");
+        campos["emailContato"].val(mapa.get("emailContato") || "");
+        campos["emailAdicional"].val(mapa.get("emailAdicional") || "");
+        campos["telefone"].val(mapa.get("telefone") || "");
+        campos["celular"].val(mapa.get("celular") || "");
+        campos["contatoAdicional"].val(mapa.get("contatoAdicional") || "");
+        campos["formaPagamento"].val(mapa.get("formaPagamento") || "");
+        campos["banco"].val(mapa.get("banco") || "");
+        campos["agenciaDigito"].val(mapa.get("agenciaDigito") || "");
+        campos["contaDigito"].val(mapa.get("contaDigito") || "");
+        campos["tipoConta"].val(mapa.get("tipoConta") || "");
+        campos["documentoConta"].val(mapa.get("documentoConta") || "");
+        cnpjInaptoTitular = (mapa.get("titularComRestricao") ?? "false") === "true";
+        campos["titularComRestricao"].campo.prop("checked", cnpjInaptoTitular);
+        campos["titularConta"].val(mapa.get("titularConta") || "");
+        campos["favNomeFantasia"].val(mapa.get("favNomeFantasia") || "");
+        campos["favCep"].val(mapa.get("favCep") || "");
+        campos["favEstado"].val(mapa.get("favEstado") || "");
+        campos["favCidade"].val(mapa.get("favCidade") || "");
+        campos["favLogradouro"].val(mapa.get("favLogradouro") || "");
+        campos["favBairro"].val(mapa.get("favBairro") || "");
+        campos["favNumero"].val(mapa.get("favNumero") || "");
+        campos["favComplemento"].val(mapa.get("favComplemento") || "");
+        campos["favEmail"].val(mapa.get("favEmail") || "");
+        campos["favTelefone"].val(mapa.get("favTelefone") || "");
+        campos["observacoes"].val(mapa.get("observacoes") || "");
+        campos["nomeUsuario"].val(mapa.get("nomeUsuario") || "");
+        campos["retornoRegra"].val(mapa.get("retornoRegra") || "");
+        campos["documentosPessoaFisica"].campo.prop(
+            "files",
+            Utilitario.carregarArquivosDeString(mapa.get("documentosPessoaFisica") || "")
+        );
+        campos["comprovanteEndereco"].campo.prop(
+            "files",
+            Utilitario.carregarArquivosDeString(mapa.get("comprovanteEndereco") || "")
+        );
+        campos["comprovanteContaBancaria"].campo.prop(
+            "files",
+            Utilitario.carregarArquivosDeString(mapa.get("comprovanteContaBancaria") || "")
+        );
+    }
+
+    async function salvarDados() {
+        let dados = {};
+
+        dados.observacoesAprovacao = campos["observacoesAprovacao"].val();
+        dados.documento = campos["documento"].cleanVal(); // Valor do campo sem máscara
+        dados.cadastroComRestricao = campos["cadastroComRestricao"].campo.prop("checked"); // Estado do checkbox (marcado ou não marcado)
+        dados.razaoSocial = campos["razaoSocial"].val();
+        dados.nomeFantasia = campos["nomeFantasia"].val();
+        dados.mercadoExterior = campos["mercadoExterior"].campo.prop("checked");
+        dados.fornecedorIndustria = campos["fornecedorIndustria"].campo.prop("checked");
+        dados.ramoAtividade = campos["ramoAtividade"].val();
+        dados.inscricaoEstadual = campos["inscricaoEstadual"].val();
+        dados.cep = campos["cep"].cleanVal();
+        dados.estado = campos["estado"].val();
+        dados.cidade = campos["cidade"].val();
+        dados.logradouro = campos["logradouro"].val();
+        dados.numero = campos["numero"].val();
+        dados.bairro = campos["bairro"].val();
+        dados.complemento = campos["complemento"].val();
+        dados.enderecoCorresp = campos["enderecoCorresp"].val();
+        dados.nomeContato = campos["nomeContato"].val();
+        dados.emailContato = campos["emailContato"].val();
+        dados.emailAdicional = campos["emailAdicional"].val();
+        dados.telefone = campos["telefone"].cleanVal();
+        dados.celular = campos["celular"].cleanVal();
+        dados.contatoAdicional = campos["contatoAdicional"].cleanVal();
+        dados.formaPagamento = campos["formaPagamento"].val();
+        dados.banco = campos["banco"].val();
+        dados.agenciaDigito = campos["agenciaDigito"].val();
+        dados.contaDigito = campos["contaDigito"].val();
+        dados.tipoConta = campos["tipoConta"].val();
+        dados.documentoConta = campos["documentoConta"].cleanVal();
+        dados.titularComRestricao = campos["titularComRestricao"].campo.prop("checked");
+        dados.titularConta = campos["titularConta"].val();
+        dados.favNomeFantasia = campos["favNomeFantasia"].val();
+        dados.favCep = campos["favCep"].val();
+        dados.favEstado = campos["favEstado"].val();
+        dados.favCidade = campos["favCidade"].val();
+        dados.favLogradouro = campos["favLogradouro"].val();
+        dados.favBairro = campos["favBairro"].val();
+        dados.favNumero = campos["favNumero"].val();
+        dados.favComplemento = campos["favComplemento"].val();
+        dados.favEmail = campos["favEmail"].val();
+        dados.favTelefone = campos["favTelefone"].cleanVal();
+        dados.observacoes = campos["observacoes"].val();
+        dados.documentosPessoaFisica = await Utilitario.salvarArquivosEmString(
+            campos["documentosPessoaFisica"].obterElementoHtml()
+        ); // Salvamento de anexo na forma de uma string
+        dados.comprovanteEndereco = await Utilitario.salvarArquivosEmString(
+            campos["comprovanteEndereco"].obterElementoHtml()
+        );
+        dados.comprovanteContaBancaria = await Utilitario.salvarArquivosEmString(
+            campos["comprovanteContaBancaria"].obterElementoHtml()
+        );
+        dados.nomeUsuario = campos["nomeUsuario"].val();
+        dados.retornoRegra = campos["retornoRegra"].val();
+
+        return dados;
+    }
+
+    function definirEstadoInicial() {
+        // Opções de máscara
+        const opcoesDocumento = {
+            onKeyPress: function (documento, ev, el, op) {
+                const mascaras = ["000.000.000-000", "00.000.000/0000-00"];
+                campos["documento"].campo.mask(documento.length <= 14 && documento.length > 0 ? mascaras[0] : mascaras[1], op);
+            }
+        };
+        const opcoesDocumentoConta = {
+            onKeyPress: function (documento, ev, el, op) {
+                const mascaras = ["000.000.000-000", "00.000.000/0000-00"];
+                campos["documentoConta"].campo.mask(documento.length <= 14 && documento.length > 0 ? mascaras[0] : mascaras[1], op);
+            }
+        };
+        const opcoesContato = {
+            onKeyPress: function (numero, ev, el, op) {
+                const mascaras = ["(00) 0000-00009", "(00) 0 0000-0000"];
+                campos["contatoAdicional"].campo.mask(numero.length <= 14 && numero.length > 0 ? mascaras[0] : mascaras[1], op);
+            },
+            clearIfNotMatch: true
+        };
+
+        // Configuração das máscaras
+        campos["documento"].configurarMascara("00.000.000/0000-00", opcoesDocumento);
+        campos["cep"].configurarMascara("00000-000");
+        campos["telefone"].configurarMascara("(00) 0000-0000");
+        campos["celular"].configurarMascara("(00) 0 0000-0000");
+        campos["contatoAdicional"].configurarMascara("(00) 0 0000-0000", opcoesContato);
+
+        campos["documentoConta"].configurarMascara("00.000.000/0000-00", opcoesDocumentoConta);
+        campos["favCep"].configurarMascara("00000-000");
+        campos["favTelefone"].configurarMascara("(00) 0000-0000");
 
         // Configuração das consultas por API
         const carregaveisCnpj = [campos["documento"], campos["razaoSocial"], campos["nomeFantasia"], campos["cep"],
@@ -570,42 +451,7 @@ const Controlador = (() => {
         );
     }
 
-    // Configuração das etapas com base nos parâmetros da URL
-    // Ex.: https://gnativa.github.io/bpm-clientes-fornecedores/?etapa=solicitacao&
-    // O & ao final é adicionado para considerar os parâmetros inseridos na URL pelo próprio Senior X
-    const configurarEtapas = () => {
-        const url = new URL(window.location.toLocaleString());
-        const parametros = url.searchParams;
-        etapa = parametros.get("etapa");
-
-        // Bloquear todos os campos caso o formulário seja acessado de modo avulso
-        // Ex.: consulta da solicitação na Central de Tarefas
-        if (etapa === null || !(etapa in camposObrigatorios)) {
-            for (const idCampo in campos) {
-                campos[idCampo].definirEdicao(false);
-                campos[idCampo].sobrescreverEditabilidade(true);
-                campos[idCampo].sobrescreverObrigatoriedade(true);
-            }
-
-            return;
-        }
-
-        for (const idCampo of camposObrigatorios[etapa]) {
-            campos[idCampo].definirObrigatoriedade(true);
-        }
-
-        for (const idCampo of camposBloqueados[etapa]) {
-            campos[idCampo].definirEdicao(false);
-            campos[idCampo].sobrescreverEditabilidade(true);
-        }
-
-        for (const idCampo of camposOcultos[etapa]) {
-            campos[idCampo].definirVisibilidade(false);
-            campos[idCampo].sobrescreverVisibilidade(true);
-        }
-    }
-
-    const configurarPlugins = () => {
+    function configurarPlugins() {
         const tooltipTriggerList =
             document.querySelectorAll(`[data-bs-toggle="tooltip"]`);
         const tooltipList = [...tooltipTriggerList].map(
@@ -613,11 +459,11 @@ const Controlador = (() => {
         );
     }
 
-    const configurarEventos = () => {
+    function configurarEventos() {
         botaoEnviar.click(enviar);
-    };
+    }
 
-    const listarCampos = () => {
+    function listarCampos() {
         const props = [];
 
         for (const prop in campos) {
@@ -627,14 +473,9 @@ const Controlador = (() => {
         console.log(props.join(", "));
     }
 
-    // Função usada para envios de teste
-    const enviar = () => {
-        validarFormulario();
-    };
-
-    const consultarCnpj = (origemConsulta, campoDocumento, campoRazaoSocial, campoNomeFantasia, campoCep, campoEstado,
+    function consultarCnpj(origemConsulta, campoDocumento, campoRazaoSocial, campoNomeFantasia, campoCep, campoEstado,
                            campoCidade, campoLogradouro, campoNumero, campoBairro, campoComplemento, campoEmailContato,
-                           campoTelefone, campoContatoAdicional) => {
+                           campoTelefone, campoContatoAdicional) {
         let consultar = true;
         let razaoSocial, nomeFantasia, cep, estado, cidade, tipoLogradouro, logradouro,
             numero, bairro, complemento, email, ddd1, telefone1, telefone, ddd2, telefone2, telefoneAdicional;
@@ -849,7 +690,7 @@ const Controlador = (() => {
         }
     }
 
-    const consultarCep = (campoCep, campoEstado, campoCidade, campoLogradouro, campoBairro, campoComplemento) => {
+    function consultarCep(campoCep, campoEstado, campoCidade, campoLogradouro, campoBairro, campoComplemento) {
         const carregaveisCep = $(campoCep.classeCarregaveis);
         const cep = campoCep.val().replace(/\D/g, "");
 
@@ -917,10 +758,11 @@ const Controlador = (() => {
         ];
         salvarCampos(lista);
         secao = new Secao(id, titulo, lista);
-        secao.gerar();
      */
 
-    const gerarFormulario = () => {
+    function gerarFormulario() {
+        botaoEnviar = $("#enviar");
+
         const camposAprovacao = [
             new Campo(
                 "observacoesAprovacao", "Observações de aprovação", "area-texto", 12, null, 5
@@ -929,7 +771,6 @@ const Controlador = (() => {
 
         salvarCampos(camposAprovacao);
         secaoAprovacao = new Secao("aprovacao", "Aprovação", camposAprovacao);
-        secaoAprovacao.gerar();
 
         const listaEstados = [
             new OpcaoLista("AC", "AC - Acre"),
@@ -1284,7 +1125,6 @@ const Controlador = (() => {
 
         salvarCampos(camposDadosPrincipais);
         secaoDadosPrincipais = new Secao("dadosPrincipais", "Dados principais", camposDadosPrincipais);
-        secaoDadosPrincipais.gerar();
 
         const camposContaBancaria = [
             new Campo("banco", "Banco", "lista", 4)
@@ -1462,7 +1302,6 @@ const Controlador = (() => {
 
         salvarCampos(camposContaBancaria);
         secaoContaBancaria = new Secao("contaBancaria", "Conta bancária", camposContaBancaria);
-        secaoContaBancaria.gerar();
 
         const camposDetalhesDocumentos = [
             new Campo("observacoes", "Observações", "area-texto", 12, null, 5),
@@ -1476,7 +1315,6 @@ const Controlador = (() => {
 
         salvarCampos(camposDetalhesDocumentos);
         secaoDetalhesDocumentos = new Secao("detalhesDocumentos", "Detalhes e documentos", camposDetalhesDocumentos);
-        secaoDetalhesDocumentos.gerar();
         
         const camposControle = [
             new Campo(
@@ -1490,14 +1328,192 @@ const Controlador = (() => {
 
         salvarCampos(camposControle);
         secaoControle = new Secao("controle", "Controle", camposControle);
-        secaoControle.gerar();
-    };
+    }
 
-    const salvarCampos = (listaDeCampos) => {
+
+
+    /*#############################*/
+    /* Funções e parâmetros gerais */
+    /*#############################*/
+
+
+
+    // Variáveis para uso na geração e validação do formulário
+    let validador = new Validador();
+    let etapa = null;
+    let inicializado = false;
+
+    // Interface da API do workflow (BPM) que lida com a inicialização, salvamento de dados e erros do formulário
+    // Função "_rollback" não implementada até o momento
+    this.workflowCockpit = workflowCockpit({
+        init: _init,
+        onSubmit: _saveData,
+        onError: _rollback,
+    });
+
+    // Função de inicialização do formulário chamada pela API do workflow
+    function _init(data, info) {
+        inicializar();
+        const {initialVariables} = data["loadContext"];
+        console.log(initialVariables);
+
+        info["getUserData"]()
+            .then(function (user) {
+                console.log(user);
+                /*
+                {
+                    "id": "",
+                    "username": "",
+                    "subject": "",
+                    "fullname": "",
+                    "email": "",
+                    "tenantName": "",
+                    "tenantLocale": "pt-BR",
+                    "locale": "pt-BR"
+                }
+                 */
+            })
+            .then(function () {
+                /*
+                info["getPlatformData"]().then((dados) => {
+                    carregarFontes(dados);
+                });
+                 */
+            });
+
+        info["getInfoFromProcessVariables"]()
+            .then(function (data) {
+                console.log(data);
+
+                if (!info["isRequestNew"]() && Array.isArray(data)) {
+                    const mapa = new Map();
+
+                    for (let i = 0; i < data.length; i++) {
+                        mapa.set(data[i].key, data[i].value || "");
+                    }
+
+                    console.log("Carregando dados: ", mapa);
+                    carregarDados(mapa);
+
+                    // Disparar eventos dos campos para ativar validações
+                    for (const campo in campos) {
+                        campos[campo].campo.trigger("change");
+                    }
+                }
+            });
+    }
+
+    async function _saveData(data, info) {
+        validarFormulario();
+
+        let dados = await salvarDados();
+
+        console.log(dados);
+        return {
+            formData: dados,
+        };
+    }
+
+    function _rollback() {
+        // A implementar.
+    }
+
+    function inicializar() {
+        if (inicializado) {
+            return;
+        }
+
+        // Construção dos campos do formulário
+        gerarFormulario();
+        // Listagem dos IDs de todos os campos
+        // listarCampos();
+        configurarPlugins();
+        configurarEtapas();
+        configurarEventos();
+        definirEstadoInicial();
+        aplicarValidacoes(obterValidacoes());
+        inicializado = true;
+    }
+
+    function carregarFontes(dadosPlataforma) {
+        const token = dadosPlataforma["token"]["access_token"];
+
+        for (const nomeFonte in fontes) {
+            Consultor.carregarFonte(fontes[nomeFonte], token)
+                .then((dados) => {
+                    fontes[nomeFonte].dados = dados;
+                    console.log(dados);
+                });
+        }
+    }
+
+    function validarFormulario() {
+        validador.validarCampos();
+
+        const titulo = "Validação";
+        let mensagem = "Dados validados com sucesso.";
+
+        if (!validador.formularioValido()) {
+            mensagem = "Dados inválidos. Preencha todos os campos obrigatórios e verifique as informações inseridas "
+                + "no formulário para prosseguir.";
+            Mensagem.exibir(titulo, mensagem, "aviso");
+            throw new Error(mensagem);
+        }
+        else {
+            Mensagem.exibir(titulo, mensagem, "sucesso");
+        }
+    }
+
+    // Configuração das etapas com base nos parâmetros da URL
+    // Ex.: https://gnativa.github.io/bpm-clientes-fornecedores/?etapa=solicitacao&
+    // O & ao final é adicionado para considerar os parâmetros inseridos na URL pelo próprio Senior X
+    function configurarEtapas() {
+        const url = new URL(window.location.toLocaleString());
+        const parametros = url.searchParams;
+        etapa = parametros.get("etapa");
+
+        // Bloquear todos os campos caso o formulário seja acessado de modo avulso
+        // Ex.: consulta da solicitação na Central de Tarefas
+        if (etapa === null || !(etapa in camposObrigatorios)) {
+            for (const idCampo in campos) {
+                campos[idCampo].definirEdicao(false);
+                campos[idCampo].sobrescreverEditabilidade(true);
+                campos[idCampo].sobrescreverObrigatoriedade(true);
+            }
+
+            return;
+        }
+
+        for (const idCampo of camposObrigatorios[etapa]) {
+            campos[idCampo].definirObrigatoriedade(true);
+        }
+
+        for (const idCampo of camposBloqueados[etapa]) {
+            campos[idCampo].definirEdicao(false);
+            campos[idCampo].sobrescreverEditabilidade(true);
+        }
+
+        for (const idCampo of camposOcultos[etapa]) {
+            campos[idCampo].definirVisibilidade(false);
+            campos[idCampo].sobrescreverVisibilidade(true);
+        }
+    }
+
+    function aplicarValidacoes(validacoes) {
+        validador.validacoes = validacoes;
+        validador.configurarValidacoes();
+    }
+
+    function salvarCampos(listaDeCampos) {
         for (const campo of listaDeCampos) {
             campos[campo["id"]] = campo;
         }
-    };
+    }
+
+    // Função usada para envios de teste
+    function enviar() {
+        validarFormulario();
+    }
 
     return {
         inicializar
