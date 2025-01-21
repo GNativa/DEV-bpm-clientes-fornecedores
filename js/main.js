@@ -1,3 +1,3 @@
 $(document).ready(() => {
-    ControladorTeste.inicializar();
+    Controlador.inicializar();
 });

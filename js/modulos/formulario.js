@@ -1339,7 +1339,7 @@ const Formulario = (() => {
 
     // Função usada para envios de teste
     function enviar() {
-        ControladorTeste.validarFormulario();
+        Controlador.validarFormulario();
     }
 
     return {
