@@ -122,7 +122,7 @@ const Controlador = (() => {
         for (const nomeFonte in Formulario.fontes) {
             Consultor.carregarFonte(Formulario.fontes[nomeFonte], token)
                 .then((dados) => {
-                    Formulario.definirDados(dados);
+                    Formulario.fontes[nomeFonte].definirDados(dados);
                     console.log(dados);
                 });
         }
