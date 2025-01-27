@@ -1,20 +1,26 @@
 class Fonte {
-    constructor(nome, camposExibicao, opcoesLista) {
+    constructor(nome, camposExibicao, camposCorrespondentes) {
         this.nome = nome;
         this.camposExibicao = camposExibicao ?? {"chave": "", "valor": ""};
-        this.opcoesLista = opcoesLista ?? [];
         this.dados = {};
+        this.camposCorrespondentes = camposCorrespondentes ?? [];
     }
 
     definirDados(dados) {
-        for (const obj of dados) {
+        this.dados = dados;
+    }
+
+    gerarOpcoes() {
+        const opcoes = [];
+
+        for (const obj of this.dados) {
             const chave = obj[this.camposExibicao["chave"]];
             const valor = obj[this.camposExibicao["valor"]];
 
             const opcao = new OpcaoLista(chave, `${chave} - ${valor}`);
-            this.opcoesLista.push(opcao);
+            opcoes.push(opcao);
         }
 
-        this.dados = dados;
+        return opcoes;
     }
 }

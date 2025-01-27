@@ -122,8 +122,14 @@ const Controlador = (() => {
         for (const nomeFonte in Formulario.fontes) {
             Consultor.carregarFonte(Formulario.fontes[nomeFonte], token)
                 .then((dados) => {
-                    Formulario.fontes[nomeFonte].definirDados(dados);
+                    const fonte = Formulario.fontes[nomeFonte];
+
+                    fonte.definirDados(dados);
                     console.log(dados);
+
+                    for (const campo in fonte.camposCorrespondentes) {
+                        Formulario.campos[campo]?.adicionarOpcoes(fonte.gerarOpcoes());
+                    }
                 });
         }
     }

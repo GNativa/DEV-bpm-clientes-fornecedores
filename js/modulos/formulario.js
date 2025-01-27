@@ -54,13 +54,12 @@ const Formulario = (() => {
         "revisao": ["retornoRegra", "nomeUsuario"]
     };
 
-    let opcoes = {
-        "bancos": [],
+    const fontes = {
+        "consultaCadastro": new Fonte("Bancos", {"chave": "codigo", "valor": "nome"}, ["bancos"]),
     };
 
-    const fontes = {
-        "consultaCadastro": new Fonte("Bancos", {"chave": "codigo", "valor": "nome"}, opcoes["bancos"]),
-    };
+    // Campos do tipo lista que devem ser atualizados no carregamento das fontes de dados
+    let camposFonte = ["bancos"];
 
     // obterValidacoes(): array<Validacao>
     /*
@@ -1169,8 +1168,7 @@ const Formulario = (() => {
         secaoDadosPrincipais = new Secao("dadosPrincipais", "Dados principais", camposDadosPrincipais);
 
         const camposContaBancaria = [
-            new Campo("banco", "Banco", "lista", 4)
-                .adicionarOpcoes(opcoes["bancos"]),
+            new Campo("banco", "Banco", "lista", 4),
             new Campo("agenciaDigito", "Agência e dígito", "texto", 2),
             new Campo("contaDigito", "Conta bancária e dígito", "texto", 2),
             new Campo("tipoConta", "Tipo de conta", "lista", 2)
@@ -1247,6 +1245,7 @@ const Formulario = (() => {
         camposBloqueados,
         camposOcultos,
         fontes,
+        camposFonte,
         listarCampos,
         carregarDados,
         salvarDados,
