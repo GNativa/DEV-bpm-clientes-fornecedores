@@ -55,11 +55,8 @@ const Formulario = (() => {
     };
 
     const fontes = {
-        "consultaCadastro": new Fonte("Bancos", {"chave": "codigo", "valor": "nome"}, ["bancos"]),
+        "bancos": new Fonte("Bancos", {"chave": "codigo", "valor": "nome"}, ["banco"]),
     };
-
-    // Campos do tipo lista que devem ser atualizados no carregamento das fontes de dados
-    let camposFonte = ["bancos"];
 
     // obterValidacoes(): array<Validacao>
     /*
@@ -1245,7 +1242,6 @@ const Formulario = (() => {
         camposBloqueados,
         camposOcultos,
         fontes,
-        camposFonte,
         listarCampos,
         carregarDados,
         salvarDados,

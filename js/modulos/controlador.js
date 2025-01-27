@@ -120,15 +120,15 @@ const Controlador = (() => {
         const token = dadosPlataforma["token"]["access_token"];
 
         for (const nomeFonte in Formulario.fontes) {
-            Consultor.carregarFonte(Formulario.fontes[nomeFonte], token)
-                .then((dados) => {
-                    const fonte = Formulario.fontes[nomeFonte];
+            const fonte = Formulario.fontes[nomeFonte];
 
+            Consultor.carregarFonte(fonte, token)
+                .then((dados) => {
                     fonte.definirDados(dados);
                     console.log(dados);
 
                     for (const campo in fonte.camposCorrespondentes) {
-                        Formulario.campos[campo]?.adicionarOpcoes(fonte.gerarOpcoes());
+                        Formulario.campos[campo].adicionarOpcoes(fonte.gerarOpcoes());
                     }
                 });
         }
