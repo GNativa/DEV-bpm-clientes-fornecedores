@@ -127,7 +127,7 @@ const Controlador = (() => {
                     fonte.definirDados(dados);
                     console.log(dados);
 
-                    for (const campo in fonte.camposCorrespondentes) {
+                    for (const campo of fonte.camposCorrespondentes) {
                         Formulario.campos[campo].adicionarOpcoes(fonte.gerarOpcoes());
                     }
                 });
