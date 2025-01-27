@@ -55,7 +55,7 @@ const Formulario = (() => {
     };
 
     const fontes = {
-        "bancos": new Fonte("Bancos", {"chave": "codigo", "valor": "nome"}, ["banco"]),
+        "bancos": new Fonte("Bancos", "codigo", "nome", ["banco"]),
     };
 
     // obterValidacoes(): array<Validacao>
