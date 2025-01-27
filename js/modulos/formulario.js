@@ -492,7 +492,7 @@ const Formulario = (() => {
         Configura eventos em elementos diversos.
      */
     function configurarEventos() {
-
+        // A implementar.
     }
 
     // listarCampos(): void
@@ -555,7 +555,7 @@ const Formulario = (() => {
                 telefoneAdicional = campos["contatoAdicional"].cleanVal();
 
                 campoDocumento.finalizarCarregamento();
-                salvarDados();
+                salvarDadosCnpj();
                 validarObrigatorios();
             }
         }
@@ -584,7 +584,7 @@ const Formulario = (() => {
                 }
 
                 obterDados(dadosCnpj, "cnpjWs");
-                salvarDados();
+                salvarDadosCnpj();
                 validarObrigatorios();
             }).fail(function (retorno) {
                 const resposta = retorno["responseJSON"];
@@ -643,7 +643,7 @@ const Formulario = (() => {
                 }
 
                 obterDados(dadosCnpj, "speedio");
-                salvarDados();
+                salvarDadosCnpj();
                 validarObrigatorios();
             }).fail(function (retorno) {
                 // const resposta = retorno["responseJSON"];
@@ -696,7 +696,7 @@ const Formulario = (() => {
             }
         }
 
-        function salvarDados() {
+        function salvarDadosCnpj() {
             campoDocumento.campo.trigger("change");
             campoRazaoSocial.val(razaoSocial);
             campoNomeFantasia.val(nomeFantasia);
