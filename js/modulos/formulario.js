@@ -1278,6 +1278,7 @@ const Formulario = (() => {
                     new OpcaoLista("492", "492 - ING Bank N.V."),
                     new OpcaoLista("505", "505 - Banco Credit Suisse (Brasil) S.A."),
                     new OpcaoLista("529", "529 - BANCO PINBANK IP S/A"),
+                    new OpcaoLista("536", "536 - Banco Neon"),
                     new OpcaoLista("600", "600 - Banco Luso Brasileiro S.A."),
                     new OpcaoLista("604", "604 - Banco Industrial do Brasil S.A."),
                     new OpcaoLista("610", "610 - Banco VR S.A."),
