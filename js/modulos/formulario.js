@@ -1,6 +1,6 @@
 /*
     > Formulário
-        - Mantém o estado do formulário, realizando carregamento e salvamento de dados, validações etc.
+        - Mantém o estado do formulário, realizando carregamento e salvamento de dados, validações, etc.
  */
 
 const Formulario = (() => {
@@ -55,7 +55,7 @@ const Formulario = (() => {
     };
 
     const fontes = {
-        "consultaCadastro": new Fonte("Clientes", []),
+        "consultaCadastro": new Fonte("Bancos", {"chave": "codigo", "valor": "nome"}),
     };
 
     // obterValidacoes(): array<Validacao>

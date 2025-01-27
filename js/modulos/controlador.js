@@ -45,11 +45,9 @@ const Controlador = (() => {
                  */
             })
             .then(function () {
-                /*
                 info["getPlatformData"]().then((dados) => {
                     carregarFontes(dados);
                 });
-                 */
             });
 
         info["getInfoFromProcessVariables"]()
