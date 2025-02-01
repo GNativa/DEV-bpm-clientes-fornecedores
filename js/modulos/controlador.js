@@ -71,6 +71,14 @@ const Controlador = (() => {
                         Formulario.campos[campo].campo.trigger("change");
                     }
                 }
+            })
+            .catch(function (error) {
+                const mensagem = `Houve um erro ao inicializar o formulário: ${error}. `
+                      + `Por gentileza, abra a solicitação novamente para prosseguir.`;
+                Mensagem.exibir("Erro na inicialização do formulário",
+                    mensagem,
+                    "erro");
+                throw error;
             });
     }
 
