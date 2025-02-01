@@ -45,12 +45,14 @@ const Controlador = (() => {
                  */
             })
             .then(function () {
-                info["getPlatformData"]().then((dados) => {
-                    carregarFontes(dados);
-                });
-            });
-
-        info["getInfoFromProcessVariables"]()
+                return info["getPlatformData"]();
+            })
+            .then(function (dados) {
+                return carregarFontes(dados);
+            })
+            .then(function () {
+                return info["getInfoFromProcessVariables"]();
+            })
             .then(function (data) {
                 console.log(data);
 
@@ -82,6 +84,7 @@ const Controlador = (() => {
         let dados = await Formulario.salvarDados();
 
         console.log(dados);
+
         return {
             formData: dados,
         };
@@ -116,21 +119,19 @@ const Controlador = (() => {
     /*
         Carrega as fontes de dados definidas na classe Formulario usando o token de acesso do Senior X.
      */
-    function carregarFontes(dadosPlataforma) {
+    async function carregarFontes(dadosPlataforma) {
         const token = dadosPlataforma["token"]["access_token"];
 
         for (const nomeFonte in Formulario.fontes) {
             const fonte = Formulario.fontes[nomeFonte];
 
-            Consultor.carregarFonte(fonte, token)
-                .then((dados) => {
-                    fonte.definirDados(dados);
-                    console.log(dados);
+            const dados = await Consultor.carregarFonte(fonte, token)
+            fonte.definirDados(dados);
+            console.log(dados);
 
-                    for (const campo of fonte.camposCorrespondentes) {
-                        Formulario.campos[campo].adicionarOpcoes(fonte.gerarOpcoes());
-                    }
-                });
+            for (const campo of fonte.camposCorrespondentes) {
+                Formulario.campos[campo].adicionarOpcoes(fonte.gerarOpcoes());
+            }
         }
     }
 
