@@ -48,27 +48,28 @@ const Controlador = (() => {
                 info["getPlatformData"]().then((dados) => {
                     carregarFontes(dados);
                 });
-            });
+            })
+            .then(function () {
+                info["getInfoFromProcessVariables"]()
+                    .then(function (data) {
+                        console.log(data);
 
-        info["getInfoFromProcessVariables"]()
-            .then(function (data) {
-                console.log(data);
+                        if (!info["isRequestNew"]() && Array.isArray(data)) {
+                            const mapa = new Map();
 
-                if (!info["isRequestNew"]() && Array.isArray(data)) {
-                    const mapa = new Map();
+                            for (let i = 0; i < data.length; i++) {
+                                mapa.set(data[i].key, data[i].value || "");
+                            }
 
-                    for (let i = 0; i < data.length; i++) {
-                        mapa.set(data[i].key, data[i].value || "");
-                    }
+                            console.log("Carregando dados: ", mapa);
+                            Formulario.carregarDados(mapa);
 
-                    console.log("Carregando dados: ", mapa);
-                    Formulario.carregarDados(mapa);
-
-                    // Disparar eventos dos campos para ativar validações
-                    for (const campo in Formulario.campos) {
-                        Formulario.campos[campo].campo.trigger("change");
-                    }
-                }
+                            // Disparar eventos dos campos para ativar validações
+                            for (const campo in Formulario.campos) {
+                                Formulario.campos[campo].campo.trigger("change");
+                            }
+                        }
+                    });
             });
     }
 
