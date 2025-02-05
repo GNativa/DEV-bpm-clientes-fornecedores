@@ -12,6 +12,7 @@ class Secao {
         this.elemento = $();
         this.divSecao = document.createElement("div");
         this.campos = campos ?? [];
+        this.gerar();
     }
 
     configurarTitulo(elementoSecao) {

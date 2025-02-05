@@ -31,7 +31,7 @@ class Validador {
             .trigger("change")
             .filter("[required]:visible")
             .filter(function () {
-                return (this.type === "checkbox" && !this.checked) || (this.type !== "checkbox" && this.value === "")
+                return (this.type === "checkbox" && !this.checked) || (this.type !== "checkbox" && this.value === "");
             })
             // .addClass("invalido")
             .trigger("change")

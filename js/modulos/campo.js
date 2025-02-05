@@ -1,3 +1,8 @@
+// OpcaoLista(valor: string, conteudo: string)
+/*
+    Opção de uma lista de um <select>.
+ */
+
 class OpcaoLista {
     constructor(valor, conteudo) {
         this.valor = valor;
@@ -5,12 +10,22 @@ class OpcaoLista {
     }
 }
 
+// TipoCampo(elemento: string, tipo: string)
+/*
+    Correspondência de um elemento para um tipo, voltado a elementos do tipo <input>.
+ */
+
 class TipoCampo {
     constructor(elemento, tipo) {
         this.elemento = elemento;
         this.tipo = tipo;
     }
 }
+
+// tipoParaElemento: {string -> TipoCampo}
+/*
+    - Correspondência de um apelido abstraído aos seus elementos de HTML e tipos.
+ */
 
 const tipoParaElemento = {
     "checkbox": new TipoCampo("input", "checkbox"),
@@ -22,8 +37,13 @@ const tipoParaElemento = {
     "data": new TipoCampo("input", "date")
 };
 
+// Campo(id: string, rotulo: string, tipo: string, largura: integer, dica: string, altura: integer,
+//       listaFiltro: array, propriedadesAdicionais: {})
+/*
+    - Representação abstrata de um campo no formulário.
+ */
 class Campo {
-    constructor(id, rotulo, tipo, largura, dica, altura, propriedadesAdicionais) {
+    constructor(id, rotulo, tipo, largura, dica, altura, listaFiltro, propriedadesAdicionais) {
         if (document.getElementById(id) !== null) {
             throw Error(`Já existe um campo com o id "${id}".`);
         }
@@ -36,8 +56,11 @@ class Campo {
         this.rotulo = rotulo;
         this.tipo = tipo.toLowerCase();
         this.largura = largura;
-        this.altura = altura !== undefined && altura !== null ? `${altura}lh` : null;
+        this.altura = (altura !== undefined && altura !== null) ? `${altura}lh` : null;
         this.dica = dica ?? null;
+        // A implementar, deve guardar a lista que serve como filtro para este campo
+        // caso seja uma lista
+        this.listaFiltro = listaFiltro ?? null;
         this.propriedadesAdicionais = propriedadesAdicionais ?? {};
 
         this.obrigatorio = false;
@@ -77,6 +100,10 @@ class Campo {
         this.definirEdicao(true);
     }
 
+    // configurarElementoHtml(): void
+    /*
+        Configura os parâmetros e comportamentos do elemento HTML correspondente ao campo e o adiciona à página.
+     */
     configurarElementoHtml() {
         const id = this.id;
         const tipo = this.tipo;
@@ -206,12 +233,20 @@ class Campo {
         return elementoJquery;
     }
 
+    // configurarMascara(mascara: string, opcoes: {}): void
+    /*
+        Configura a máscara do campo e suas opções.
+     */
     configurarMascara(mascara, opcoes) {
         this.opcoesMascara = opcoes ?? this.opcoesMascara;
         this.campo.mask(mascara, opcoes ?? this.opcoesMascara);
         return this;
     }
 
+    // adicionarEvento(evento: string, funcao: function(): void): void
+    /*
+        Configura a máscara e opções de máscara do campo.
+     */
     adicionarEvento(evento, funcao) {
         this.campo.on(evento, funcao);
         return this;
