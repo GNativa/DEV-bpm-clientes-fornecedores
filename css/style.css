@@ -11,6 +11,15 @@
     --cor-erro: var(--bs-form-invalid-color);
 }
 
+/* Fazer as colunas ocuparem linhas inteiras em telas menores */
+/* ou em orientação retrato */
+@media screen and (max-width: 960px), (orientation: portrait) {
+    .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12 {
+        flex: 0 0 auto;
+        width: 100%;
+    }
+}
+
 .sucesso {
     color: var(--cor-sucesso);
 }
