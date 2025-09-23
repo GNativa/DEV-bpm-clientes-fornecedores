@@ -71,9 +71,16 @@ const Utilitario = (() => {
         return dicionario;
     };
 
+    const obterEtapa = function() {
+        const url = new URL(window.location.toLocaleString());
+        const parametros = url.searchParams;
+        return parametros.get("etapa");
+    }
+
     return {
         salvarArquivosEmString,
         carregarArquivosDeString,
-        obterDicionario
+        obterDicionario,
+        obterEtapa,
     };
 })();

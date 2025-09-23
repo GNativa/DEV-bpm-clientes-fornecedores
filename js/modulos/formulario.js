@@ -31,7 +31,7 @@ const Formulario = (() => {
 
     const camposBloqueados = {
         "solicitacao": [],
-        "aprovacaoInicial": ["documento", "cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
+        "aprovacaoInicial": ["cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
             "ramoAtividade", "nomeContato", "emailContato", "emailAdicional", "telefone", "celular", "contatoAdicional", "formaPagamento", "banco", "agenciaDigito",
             "contaDigito", "tipoConta", "documentoConta", "titularConta", "favNomeFantasia", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco",
             "comprovanteContaBancaria", "retornoRegra"],
@@ -98,8 +98,7 @@ const Formulario = (() => {
             ),
             new Validacao(() => {
                     const tamanhoDocumento = campos["documento"].cleanVal().length;
-
-                    return tamanhoDocumento > 11;
+                    return tamanhoDocumento > 11 && Utilitario.obterEtapa() !== "aprovacaoInicial";
                 },
                 null,
                 [campos["documento"]],
@@ -171,7 +170,6 @@ const Formulario = (() => {
                     const documentoConta = campos["documentoConta"].cleanVal();
 
                     return campos["formaPagamento"].val() === "3"
-                        && ((documentoCadastro !== "") && (documentoConta !== ""))
                         && (documentoCadastro.length === 14 && documentoConta.length === 14)
                         && (documentoCadastro.substring(0, 8) !== documentoConta.substring(0, 8));
                 },
@@ -184,7 +182,6 @@ const Formulario = (() => {
                     const documentoConta = campos["documentoConta"].cleanVal();
 
                     return campos["formaPagamento"].val() === "3"
-                        && ((documentoCadastro !== "") && (documentoConta !== ""))
                         && (documentoCadastro.length === 11 && documentoConta.length === 11)
                         && documentoCadastro !== documentoConta;
                 },
@@ -196,11 +193,10 @@ const Formulario = (() => {
                     const documentoCadastro = campos["documento"].cleanVal();
                     const documentoConta = campos["documentoConta"].cleanVal();
 
-                    return campos["formaPagamento"].val() === "3"
-                        && ((documentoCadastro !== "") && (documentoConta !== ""))
-                        && (documentoCadastro.length === documentoConta.length)
-                        && (documentoCadastro !== documentoConta)
-                        && (documentoCadastro.length === 14 && documentoConta.length === 14);
+                    return Utilitario.obterEtapa() !== "aprovacaoInicial"
+                        && campos["formaPagamento"].val() === "3"
+                        && (documentoCadastro.length === 14 && documentoConta.length === 14)
+                        && (documentoCadastro !== documentoConta);
                 },
                 null,
                 [campos["documento"], campos["documentoConta"]],
