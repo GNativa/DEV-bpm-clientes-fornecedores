@@ -32,7 +32,7 @@ const Formulario = (() => {
     const camposBloqueados = {
         "solicitacao": [],
         "aprovacaoInicial": ["cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
-            "ramoAtividade", "nomeContato", "emailContato", "emailAdicional", "telefone", "celular", "contatoAdicional", "formaPagamento", "banco", "agenciaDigito",
+            "ramoAtividade", "nomeContato", "emailAdicional", "celular", "contatoAdicional", "formaPagamento", "banco", "agenciaDigito",
             "contaDigito", "tipoConta", "documentoConta", "titularConta", "favNomeFantasia", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco",
             "comprovanteContaBancaria", "retornoRegra"],
         "execucao": [],
