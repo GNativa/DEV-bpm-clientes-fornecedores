@@ -22,7 +22,7 @@ const Formulario = (() => {
     const camposObrigatorios = {
         "solicitacao": ["razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "pais", "estado", "cidade", "logradouro",
             "numero", "bairro", "formaPagamento"],
-        "aprovacaoInicial": ["observacoesAprovacao"],
+        "aprovacaoInicial": ["observacoesAprovacao", "nomeFantasia"],
         "execucao": [],
         "aprovacaoFinanceiro": ["observacoesAprovacao"],
         "revisao": ["razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "estado", "cidade", "logradouro", "numero", "bairro",
@@ -31,7 +31,7 @@ const Formulario = (() => {
 
     const camposBloqueados = {
         "solicitacao": [],
-        "aprovacaoInicial": ["cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
+        "aprovacaoInicial": ["cadastroComRestricao", "razaoSocial", "mercadoExterior", "fornecedorIndustria",
             "ramoAtividade", "nomeContato", "emailAdicional", "celular", "contatoAdicional", "formaPagamento", "banco", "agenciaDigito",
             "contaDigito", "tipoConta", "documentoConta", "titularConta", "favNomeFantasia", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco",
             "comprovanteContaBancaria", "retornoRegra"],
