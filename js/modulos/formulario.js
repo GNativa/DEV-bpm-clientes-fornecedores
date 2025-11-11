@@ -10,6 +10,9 @@ const Formulario = (() => {
     let cnpjInaptoCadastro = false, cnpjInaptoTitular = false,
         documentoAnterior = "";
 
+    const tituloDadosPrincipais = "Dados principais";
+    const tituloContaBancaria = "Conta bancária";
+
     let secaoAprovacao,              // Seção de aprovação
         secaoDadosPrincipais,        // Seção dos dados principais
         secaoContaBancaria,          // Etc.
@@ -28,11 +31,10 @@ const Formulario = (() => {
         "revisao": ["razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "estado", "cidade", "logradouro", "numero", "bairro",
             "formaPagamento"],
     };
-
     const camposBloqueados = {
         "solicitacao": [],
         "aprovacaoInicial": ["cadastroComRestricao", "razaoSocial", "mercadoExterior", "fornecedorIndustria",
-            "ramoAtividade", "nomeContato", "emailAdicional", "celular", "contatoAdicional", "formaPagamento", "banco", "agenciaDigito",
+            "ramoAtividade", "nomeContato", "celular", "contatoAdicional", "formaPagamento", "banco", "agenciaDigito",
             "contaDigito", "tipoConta", "documentoConta", "titularConta", "favNomeFantasia", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco",
             "comprovanteContaBancaria", "retornoRegra"],
         "execucao": [],
@@ -45,23 +47,72 @@ const Formulario = (() => {
     };
 
     const camposOcultos = {
-        "solicitacao": ["observacoesAprovacao", "retornoRegra", "nomeUsuario"],
-        "aprovacaoInicial": ["retornoRegra", "nomeUsuario"],
+        "solicitacao": ["observacoesAprovacao", "retornoRegra", "nomeUsuario", "atualizarConta"],
+        "aprovacaoInicial": ["retornoRegra", "nomeUsuario", "atualizarConta"],
         "execucao": [],
-        "aprovacaoFinanceiro": ["retornoRegra", "nomeUsuario"],
-        "revisao": ["retornoRegra", "nomeUsuario"]
+        "aprovacaoFinanceiro": ["atualizarCadastro", "retornoRegra", "nomeUsuario"],
+        "revisao": ["retornoRegra", "nomeUsuario", "atualizarConta"]
     };
 
     const fontes = {
         "bancos": new Fonte("Bancos", "codigo", "nome", ["banco"]),
+        "clientes": new Fonte ("Clientes", "codcli","apecli",["clienteFornecedor"]),
+
     };
 
     // obterValidacoes(): array<Validacao>
     /*
         Validações a serem usadas no formulário.
      */
+    function mostrarCamposFavorecido(){
+
+        const documentoCadastro = campos["documento"].cleanVal();
+        const documentoConta = campos["documentoConta"].cleanVal();
+
+        return Utilitario.obterEtapa() !== "aprovacaoInicial"
+            && campos["formaPagamento"].val() === "3"
+            && (documentoCadastro.length === 14 && documentoConta.length === 14)
+            && (documentoCadastro !== documentoConta);
+
+    }
+
+
     function obterValidacoes() {
         return [
+            new Validacao(()=>{
+                    const atualizarCadastro = campos["atualizarCadastro"].campo.prop("checked");
+                    return atualizarCadastro && mostrarCamposFavorecido();
+                },
+                "O processo de atualização não considera a conta do favorecido.",
+            [campos["atualizarCadastro"],campos["documento"], campos["documentoConta"]],
+                [campos["documentoConta"]],
+                ),
+
+
+            new Validacao(() => {
+                    const atualizarCadastro = campos["atualizarCadastro"].campo.prop("checked");
+                    return atualizarCadastro === true;
+                },
+                null,
+                [campos["atualizarCadastro"]],
+                null,
+                [campos["clienteFornecedor"]],
+                null,
+                null,
+                [campos["clienteFornecedor"]],
+            ),
+            new Validacao(() => {
+                    const atualizarCadastro = campos["atualizarCadastro"].campo.prop("checked");
+                    return campos["formaPagamento"].val() === "3" && atualizarCadastro === true;
+                },
+                null,
+                [campos["atualizarCadastro"],campos["formaPagamento"]],
+                null,
+                null,
+                null,
+                null,
+                [campos["atualizarConta"]],
+            ),
             new Validacao(() => {
                     const documento = campos["documento"].cleanVal();
                     return (documento.length > 11 && documento.length < 14)
@@ -190,13 +241,7 @@ const Formulario = (() => {
                 [campos["documentoConta"]],
             ),
             new Validacao(() => {
-                    const documentoCadastro = campos["documento"].cleanVal();
-                    const documentoConta = campos["documentoConta"].cleanVal();
-
-                    return Utilitario.obterEtapa() !== "aprovacaoInicial"
-                        && campos["formaPagamento"].val() === "3"
-                        && (documentoCadastro.length === 14 && documentoConta.length === 14)
-                        && (documentoCadastro !== documentoConta);
+                    return mostrarCamposFavorecido();
                 },
                 null,
                 [campos["documento"], campos["documentoConta"]],
@@ -316,6 +361,11 @@ const Formulario = (() => {
             "files",
             Utilitario.carregarArquivosDeString(mapa.get("comprovanteContaBancaria") || "")
         );
+        const atualizarCadastro = (mapa.get("atualizarCadastro") ?? "false") === "true";
+        campos["atualizarCadastro"].campo.prop("checked", atualizarCadastro);
+        const atualizarConta = (mapa.get("atualizarConta") ?? "false" === "true");
+        campos["atualizarConta"].campo.prop("checked", atualizarConta);
+        campos["clienteFornecedor"].val(mapa.get("clienteFornecedor") || "");
     }
 
     // salvarDados(): Promise<{}>
@@ -378,6 +428,9 @@ const Formulario = (() => {
         );
         dados.nomeUsuario = campos["nomeUsuario"].val();
         dados.retornoRegra = campos["retornoRegra"].val();
+        dados.atualizarCadastro = campos["atualizarCadastro"].campo.prop("checked");
+        dados.atualizarConta = campos["atualizarConta"].campo.prop("checked");
+        dados.clienteFornecedor = campos["clienteFornecedor"].val();
 
         return dados;
     }
@@ -486,6 +539,14 @@ const Formulario = (() => {
         Configura eventos em elementos diversos.
      */
     function configurarEventos() {
+        campos["atualizarCadastro"].adicionarEvento(
+            "change",
+            function () {
+               const atualizarCadastro = campos["atualizarCadastro"].campo.prop("checked");
+               secaoDadosPrincipais.atualizarTitulo(`${tituloDadosPrincipais}${atualizarCadastro ? " - Atualização" : ""}`);
+               secaoContaBancaria.atualizarTitulo(`${tituloContaBancaria}${atualizarCadastro ? " - Atualização" : ""}`);
+            },
+        );
         // A implementar.
     }
 
@@ -848,6 +909,9 @@ const Formulario = (() => {
                 "documento", "CPF/CNPJ", "texto", 2,
                 "Pressione TAB ou selecione outro campo para efetuar uma consulta com o documento informado"
             ),
+            new Campo("atualizarCadastro","Atualizar cadastro","checkbox",2,
+                "Marque para atualizar cadastro", null, null),
+            new Campo("clienteFornecedor", "Cliente/Fornecedor","lista",4),
             new Campo("tipoPessoa", "Tipo de pessoa", "lista", 2)
                 .adicionarOpcoes([
                     new OpcaoLista("F", "F - Física"),
@@ -1156,7 +1220,7 @@ const Formulario = (() => {
         ];
 
         salvarCampos(camposDadosPrincipais);
-        secaoDadosPrincipais = new Secao("dadosPrincipais", "Dados principais", camposDadosPrincipais);
+        secaoDadosPrincipais = new Secao("dadosPrincipais", tituloDadosPrincipais, camposDadosPrincipais);
 
         const camposContaBancaria = [
             new Campo("banco", "Banco", "lista", 4),
@@ -1188,10 +1252,11 @@ const Formulario = (() => {
             new Campo("favComplemento", "Complemento", "texto", 4),
             new Campo("favEmail", "E-mail", "email", 4),
             new Campo("favTelefone", "Telefone ou celular", "texto", 2),
+            new Campo("atualizarConta","Atualizar Conta","checkbox",2,"Marque para atualizar os dados bancários"),
         ];
 
         salvarCampos(camposContaBancaria);
-        secaoContaBancaria = new Secao("contaBancaria", "Conta bancária", camposContaBancaria);
+        secaoContaBancaria = new Secao("contaBancaria", tituloContaBancaria, camposContaBancaria);
 
         const camposDetalhesDocumentos = [
             new Campo("observacoes", "Observações", "area-texto", 12, null, 5),
@@ -1229,6 +1294,14 @@ const Formulario = (() => {
             campos[campo["id"]] = campo;
         }
     }
+
+    /*
+    Desenvolvedor: Luiz Antonio Marques Kudrek
+    Objetivo: Liberar campos ao alterar cadastro do fornecedor
+    Data criação: 08/11/2025
+    Data alteração: 08/11/2025
+    */
+
 
     return {
         campos,
