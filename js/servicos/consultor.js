@@ -28,7 +28,7 @@ const Consultor = (() => {
         });
 
         const json = await resposta.json();
-        return JSON.parse(json["data"].replace("\\", ""))["value"];
+        return JSON.parse(json["data"])["value"];
     }
 
     return { obterDados, carregarFonte };
