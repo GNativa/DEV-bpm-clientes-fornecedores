@@ -12,6 +12,7 @@ class Secao {
         this.elemento = $();
         this.divSecao = document.createElement("div");
         this.campos = campos ?? [];
+        this.tituloSecao = null;
         this.gerar();
     }
 
@@ -22,14 +23,14 @@ class Secao {
         const colunaTitulo = document.createElement("div");
         colunaTitulo.classList.add("col", "coluna-titulo");
 
-        const tituloSecao = document.createElement("div");
-        tituloSecao.classList.add("titulo-g");
-        tituloSecao.textContent = this.titulo;
+        this.tituloSecao = document.createElement("div");
+        this.tituloSecao.classList.add("titulo-g");
+        this.tituloSecao.textContent = this.titulo;
 
         const hr = document.createElement("hr");
         hr.classList.add("hr-titulo");
         linhaTitulo.append(colunaTitulo);
-        colunaTitulo.append(tituloSecao);
+        colunaTitulo.append(this.tituloSecao);
         elementoSecao.appendChild(linhaTitulo);
         elementoSecao.appendChild(hr);
     }
@@ -94,5 +95,15 @@ class Secao {
 
     adicionarCampo(campo) {
         this.campos.push(campo);
+    }
+
+    atualizarTitulo(titulo) {
+        if (!this.possuiTitulo) {
+            return null;
+        }
+        this.titulo = titulo;
+        this.tituloSecao.textContent = titulo;
+
+        return titulo;
     }
 }
