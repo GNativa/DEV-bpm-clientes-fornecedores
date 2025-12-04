@@ -1,4 +1,15 @@
 const Consultor = (() => {
+    let token = null;
+
+    const guardarToken = (novo) =>{
+        token = novo;
+    }
+
+    const obterToken = () => {
+        return token;
+    }
+
+
     const obterDados = (url) => {
         return new Promise((resolve, reject) => {
             $.getJSON(url, function(data) {
@@ -9,20 +20,23 @@ const Consultor = (() => {
         });
     };
 
-    const carregarFonte = async (fonte, token) => {
+    const carregarFonte = async (nomeFonte, filtros = []) => {
         const url = "https://platform.senior.com.br/t/senior.com.br/bridge/1.0/rest/platform/ecm_form/actions/getResultSet";
         const corpo = {
-            "dataSource": `${fonte.nome}`,
-            "token": `${token}`,
+            "dataSource": `${nomeFonte}`,
+            "token": obterToken(),
             "top": 50000,
+            "filters": filtros
         };
+
+     // exemplo aplicável filters [{fieldName: "tipope", operator: "=", openingOrder: "", closingOrder: "", value: "'Transferência entre filiais'"}]
 
         const resposta = await fetch(url, {
             method: "POST",
             headers: {
                 "Accept": "application/json",
                 "Content-Type": "application/json",
-                "Authorization": `bearer ${token}`,
+                "Authorization": `bearer ${obterToken()}`,
             },
             body: JSON.stringify(corpo),
         });
@@ -31,5 +45,5 @@ const Consultor = (() => {
         return JSON.parse(json["data"])["value"];
     }
 
-    return { obterDados, carregarFonte };
+    return { obterDados, carregarFonte, guardarToken, obterToken };
 })();

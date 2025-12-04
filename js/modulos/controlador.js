@@ -129,11 +129,12 @@ const Controlador = (() => {
      */
     async function carregarFontes(dadosPlataforma) {
         const token = dadosPlataforma["token"]["access_token"];
+        Consultor.guardarToken(token);
 
         for (const nomeFonte in Formulario.fontes) {
             const fonte = Formulario.fontes[nomeFonte];
 
-            const dados = await Consultor.carregarFonte(fonte, token)
+            const dados = await Consultor.carregarFonte(fonte.nome)
             fonte.definirDados(dados);
             console.log(dados);
 
