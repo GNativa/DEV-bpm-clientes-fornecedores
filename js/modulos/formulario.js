@@ -9,6 +9,7 @@ const Formulario = (() => {
 
     let cnpjInaptoCadastro = false, cnpjInaptoTitular = false,
         documentoAnterior = "";
+    let cepAnterior = "";
 
     const tituloDadosPrincipais = "Dados principais";
     const tituloContaBancaria = "Conta bancária";
@@ -33,12 +34,12 @@ const Formulario = (() => {
     };
     const camposBloqueados = {
         "solicitacao": [],
-        "aprovacaoInicial": ["cadastroComRestricao", "razaoSocial", "mercadoExterior", "fornecedorIndustria",
+        "aprovacaoInicial": ["atualizarCadastro", "clienteFornecedor","cadastroComRestricao", "razaoSocial", "mercadoExterior", "fornecedorIndustria",
             "ramoAtividade", "nomeContato", "celular", "contatoAdicional", "formaPagamento", "banco", "agenciaDigito",
             "contaDigito", "tipoConta", "documentoConta", "titularConta", "favNomeFantasia", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco",
             "comprovanteContaBancaria", "retornoRegra"],
         "execucao": [],
-        "aprovacaoFinanceiro": ["documento", "cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
+        "aprovacaoFinanceiro": ["atualizarCadastro", "clienteFornecedor","documento", "cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
             "ramoAtividade", "inscricaoEstadual", "cep", "pais", "estado", "cidade", "logradouro", "numero", "bairro", "complemento", "enderecoCorresp",
             "nomeContato", "emailContato", "emailAdicional", "telefone", "celular", "contatoAdicional", "formaPagamento",
             "documentoConta", "titularConta", "favNomeFantasia", "favCep", "favEstado", "favCidade", "favLogradouro",
@@ -50,13 +51,13 @@ const Formulario = (() => {
         "solicitacao": ["observacoesAprovacao", "retornoRegra", "nomeUsuario", "atualizarConta"],
         "aprovacaoInicial": ["retornoRegra", "nomeUsuario", "atualizarConta"],
         "execucao": [],
-        "aprovacaoFinanceiro": ["atualizarCadastro", "retornoRegra", "nomeUsuario"],
+        "aprovacaoFinanceiro": [ "retornoRegra", "nomeUsuario"],
         "revisao": ["retornoRegra", "nomeUsuario", "atualizarConta"]
     };
 
     const fontes = {
         "bancos": new Fonte("Bancos", "codigo", "nome", ["banco"]),
-        "clientes": new Fonte ("Clientes", "codcli","apecli",["clienteFornecedor"]),
+        //"clientes": new Fonte ("Clientes", "codcli","apecli",["clienteFornecedor"]),
 
     };
 
@@ -314,6 +315,7 @@ const Formulario = (() => {
         campos["ramoAtividade"].val(mapa.get("ramoAtividade") || "");
         campos["inscricaoEstadual"].val(mapa.get("inscricaoEstadual") || "");
         campos["cep"].val(mapa.get("cep") || "");
+        cepAnterior = campos["cep"].cleanVal();
         campos["estado"].val(mapa.get("estado") || "");
         campos["cidade"].val(mapa.get("cidade") || "");
         campos["logradouro"].val(mapa.get("logradouro") || "");
@@ -363,7 +365,7 @@ const Formulario = (() => {
         );
         const atualizarCadastro = (mapa.get("atualizarCadastro") ?? "false") === "true";
         campos["atualizarCadastro"].campo.prop("checked", atualizarCadastro);
-        const atualizarConta = (mapa.get("atualizarConta") ?? "false" === "true");
+        const atualizarConta = (mapa.get("atualizarConta") ?? "false") === "true";
         campos["atualizarConta"].campo.prop("checked", atualizarConta);
         campos["clienteFornecedor"].val(mapa.get("clienteFornecedor") || "");
     }
@@ -473,6 +475,11 @@ const Formulario = (() => {
         campos["documentoConta"].configurarMascara("00.000.000/0000-00", opcoesDocumentoConta);
         campos["favCep"].configurarMascara("00000-000");
         campos["favTelefone"].configurarMascara("(00) 0000-0000");
+        campos["clienteFornecedor"].configurarMascara('Z', {
+            translation: {
+                'Z': { pattern: /[0-9]/, recursive: true }
+            }
+        });
 
         // Configuração das consultas por API
         const carregaveisCnpj = [campos["documento"], campos["razaoSocial"], campos["nomeFantasia"], campos["cep"],
@@ -520,6 +527,8 @@ const Formulario = (() => {
                 consultarCep(...carregaveisCepFav);
             }
         );
+
+        campos["clienteFornecedor"].adicionarEvento("blur",buscarClientePorCodigo);
     }
 
     // configurarPlugins(): void
@@ -712,7 +721,7 @@ const Formulario = (() => {
         function obterDados(dadosCnpj, apiOrigem) {
             if (apiOrigem === "cnpjWs") {
                 razaoSocial = dadosCnpj["razao_social"];
-                nomeFantasia = dadosCnpj["estabelecimento"]["nome_fantasia"] ?? "";
+                nomeFantasia = dadosCnpj["estabelecimento"]["nome_fantasia"] ?? razaoSocial;
                 cep = dadosCnpj["estabelecimento"]["cep"];
                 estado = dadosCnpj["estabelecimento"]["estado"]["sigla"];
                 cidade = dadosCnpj["estabelecimento"]["cidade"]["nome"];
@@ -764,11 +773,14 @@ const Formulario = (() => {
             campoComplemento.val(complemento);
             campoEmailContato.val(email);
             campoTelefone.val(telefone);
+            campos["titularConta"].val(razaoSocial);
 
             if (campoContatoAdicional) {
                 campoContatoAdicional.configurarMascara("(00) 0000-00009");
                 campoContatoAdicional.val(telefoneAdicional);
             }
+
+            cepAnterior = campos["cep"].cleanVal();
         }
 
         function limparCampos() {
@@ -787,8 +799,15 @@ const Formulario = (() => {
 
         if (cep === "") {
             carregaveisCep.val("");
+            cepAnterior = cep;
             return;
         }
+
+        if(cep === cepAnterior){
+            return;
+        }
+
+        cepAnterior = cep;
 
         const regExp = /^[0-9]{8}$/;
 
@@ -820,11 +839,11 @@ const Formulario = (() => {
 
                 campoCep.finalizarCarregamento();
 
-                const estado = dadosCep["uf"];
-                const cidade = dadosCep["localidade"];
-                const logradouro = dadosCep["logradouro"];
-                const bairro = dadosCep["bairro"];
-                const complemento = dadosCep["complemento"];
+                const estado = primeiroNaoVazio(dadosCep["uf"], campoEstado.val()) ;
+                const cidade = primeiroNaoVazio(dadosCep["localidade"], campoCidade.val());
+                const logradouro = primeiroNaoVazio(dadosCep["logradouro"], campoLogradouro.val());
+                const bairro = primeiroNaoVazio(dadosCep["bairro"], campoBairro.val());
+                const complemento = primeiroNaoVazio(dadosCep["complemento"], campoComplemento.val());
 
                 campoEstado.val(estado);
                 campoCidade.val(cidade);
@@ -911,7 +930,7 @@ const Formulario = (() => {
             ),
             new Campo("atualizarCadastro","Atualizar cadastro","checkbox",2,
                 "Marque para atualizar cadastro", null, null),
-            new Campo("clienteFornecedor", "Cliente/Fornecedor","lista",4),
+            new Campo("clienteFornecedor", "Cliente/Fornecedor","texto",4),
             new Campo("tipoPessoa", "Tipo de pessoa", "lista", 2)
                 .adicionarOpcoes([
                     new OpcaoLista("F", "F - Física"),
@@ -1301,6 +1320,86 @@ const Formulario = (() => {
     Data criação: 08/11/2025
     Data alteração: 08/11/2025
     */
+
+    async function buscarClientePorCodigo(){
+        const codigo = campos["clienteFornecedor"].val();
+        if(codigo.length === 0){
+            return;
+        }
+        campos["clienteFornecedor"].iniciarCarregamento();
+
+        try {
+            const clientes = await Consultor.carregarFonte("Clientes", [
+                {
+                    fieldName: "codcli", operator: "=", openingOrder: "", closingOrder: "", value: `'${codigo}'`
+                }
+            ]);
+
+            if( clientes.length === 0 ){
+                Mensagem.exibir('Cliente não localizado','Nenhum cliente encontrado com código informado!','erro');
+                return;
+            }
+
+            const cliente = clientes[0];
+
+            for(const propriedade in cliente){
+                cliente[propriedade] = verificaEspacoVazio(cliente[propriedade]);
+            }
+
+            campos["documento"].val(cliente["cgccpf"]).trigger("blur");
+            campos["razaoSocial"].val(cliente["nomcli"]);
+            campos["nomeFantasia"].val(cliente["apecli"]);
+            campos["mercadoExterior"].campo.prop("checked", (cliente["tipmer"]) === "E");
+            campos["fornecedorIndustria"].campo.prop("checked", (cliente["tipemp"]) === "1");
+            campos["ramoAtividade"].val(cliente["codram"]);
+            campos["inscricaoEstadual"].val(cliente["insest"]);
+            campos["estado"].val(cliente["sigufs"]);
+            campos["cidade"].val(cliente["cidcli"]);
+            campos["logradouro"].val(cliente["endcli"]);
+            campos["numero"].val(cliente["nencli"]);
+            campos["bairro"].val(cliente["baicli"]);
+            campos["complemento"].val(cliente["cplend"]);
+            campos["nomeContato"].val(cliente["nomven"]);
+            campos["emailContato"].val(cliente["emanfe"]);
+            campos["emailAdicional"].val(cliente["intnet"]);
+            campos["celular"].val(cliente["foncli"]);
+            campos["telefone"].val(cliente["foncl2"]);
+            campos["contatoAdicional"].val(cliente["foncl3"]);
+            campos["formaPagamento"].val(cliente["codfpg"] === "0" ? "" : cliente["codfpg"]);
+            campos["banco"].val(cliente["codban"]);
+            campos["agenciaDigito"].val(cliente["codage"]);
+            campos["contaDigito"].val(cliente["ccbfor"]);
+            campos["tipoConta"].val(cliente["tiptcc"]);
+            campos["titularConta"].val(cliente["nomcli"]);
+            campos["documentoConta"].val(cliente["cgccpf"]);
+
+
+            if(cliente["tipcli"] === "F"){
+
+                campos["cep"].val(cliente["cepcli"]);
+                cepAnterior = campos["cep"].cleanVal();
+            }
+        }
+        catch (e) {
+            Mensagem.exibir("Erro ao buscar cliente/fornecedor",`Erro ao buscar cliente/fornecedor através do código: ${e}`,"erro");
+            campos["clienteFornecedor"].finalizarCarregamento();
+            return;
+        }
+
+        campos["clienteFornecedor"].finalizarCarregamento();
+    }
+    function primeiroNaoVazio(primeiro, segundo){
+        if (primeiro) {
+            return primeiro;
+        }
+        return segundo;
+    }
+    function verificaEspacoVazio(textoAnalisado){
+        if(textoAnalisado === " "){
+            return "";
+        }
+        return textoAnalisado;
+    }
 
 
     return {
