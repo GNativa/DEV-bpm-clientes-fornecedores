@@ -314,6 +314,7 @@ const Formulario = (() => {
     function carregarDados(mapa) {
         campos["observacoesAprovacao"].val(mapa.get("observacoesAprovacao") || "");
         campos["documento"].val(mapa.get("documento") || "");
+        documentoAnterior = campos["documento"].cleanVal();
         cnpjInaptoCadastro = (mapa.get("cadastroComRestricao") ?? "false") === "true";
         campos["cadastroComRestricao"].campo.prop("checked", cnpjInaptoCadastro);
         campos["razaoSocial"].val(mapa.get("razaoSocial") || "");
