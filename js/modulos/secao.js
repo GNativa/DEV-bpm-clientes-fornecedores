@@ -101,9 +101,10 @@ class Secao {
         if (!this.possuiTitulo) {
             return null;
         }
+
         this.titulo = titulo;
         this.tituloSecao.textContent = titulo;
 
-        return titulo;
+        return this.titulo;
     }
 }

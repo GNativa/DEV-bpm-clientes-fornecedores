@@ -26,7 +26,14 @@ const Controlador = (() => {
     function _init(data, info) {
         inicializar();
         const {initialVariables} = data["loadContext"];
-        console.log(initialVariables);
+
+        const mapa = new Map();
+
+        for (const prop in initialVariables) {
+            mapa.set(prop, initialVariables[prop]);
+        }
+
+        Formulario.carregarDadosFluxo(mapa);
 
         info["getUserData"]()
             .then(function (user) {
@@ -63,7 +70,6 @@ const Controlador = (() => {
                         mapa.set(data[i].key, data[i].value || "");
                     }
 
-                    console.log("Carregando dados: ", mapa);
                     Formulario.carregarDados(mapa);
 
                     // Disparar eventos dos campos para ativar validações
@@ -73,9 +79,9 @@ const Controlador = (() => {
                 }
             })
             .catch(function (error) {
-                const mensagem = `Houve um erro ao inicializar o formulário: ${error}. `
-                      + `Por gentileza, abra a solicitação novamente para prosseguir.`;
-                Mensagem.exibir("Erro na inicialização do formulário",
+                const mensagem = `Houve um erro ao abrir a solicitação: ${error}. `
+                      + `Por gentileza, tente novamente mais tarde.`;
+                Mensagem.exibir("Erro na abertura da solicitação",
                     mensagem,
                     "erro");
                 throw error;

@@ -61,12 +61,7 @@ const Formulario = (() => {
 
     };
 
-    // obterValidacoes(): array<Validacao>
-    /*
-        Validações a serem usadas no formulário.
-     */
-    function mostrarCamposFavorecido(){
-
+    function mostrarCamposFavorecido() {
         const documentoCadastro = campos["documento"].cleanVal();
         const documentoConta = campos["documentoConta"].cleanVal();
 
@@ -74,22 +69,29 @@ const Formulario = (() => {
             && campos["formaPagamento"].val() === "3"
             && (documentoCadastro.length === 14 && documentoConta.length === 14)
             && (documentoCadastro !== documentoConta);
-
     }
 
-
+    // obterValidacoes(): array<Validacao>
+    /*
+        Validações a serem usadas no formulário.
+     */
     function obterValidacoes() {
         return [
-            new Validacao(()=>{
+            new Validacao(() => {
                     const atualizarCadastro = campos["atualizarCadastro"].campo.prop("checked");
                     return atualizarCadastro && mostrarCamposFavorecido();
                 },
                 "O processo de atualização não considera a conta do favorecido.",
             [campos["atualizarCadastro"],campos["documento"], campos["documentoConta"]],
                 [campos["documentoConta"]],
-                ),
-
-
+            ),
+            new Validacao(() => {
+                    return campos["atualizarCadastro"].campo.prop("checked");
+                },
+                null,
+                [campos["atualizarCadastro"]],
+                null, null, null, [campos["documento"]]
+            ),
             new Validacao(() => {
                     const atualizarCadastro = campos["atualizarCadastro"].campo.prop("checked");
                     return atualizarCadastro === true;
@@ -298,6 +300,11 @@ const Formulario = (() => {
         ];
     }
 
+
+    function carregarDadosFluxo(mapa) {
+        campos["nomeUsuario"].val(mapa.get("nomeUsuario") || "");
+    }
+
     // carregarDados(mapa: Map): void
     /*
         Extrai os dados do mapa obtido como retorno da API do workflow,
@@ -349,7 +356,11 @@ const Formulario = (() => {
         campos["favEmail"].val(mapa.get("favEmail") || "");
         campos["favTelefone"].val(mapa.get("favTelefone") || "");
         campos["observacoes"].val(mapa.get("observacoes") || "");
-        campos["nomeUsuario"].val(mapa.get("nomeUsuario") || "");
+
+        if (!campos["nomeUsuario"].val()) {
+            campos["nomeUsuario"].val(mapa.get("nomeUsuario") || "");
+        }
+
         campos["retornoRegra"].val(mapa.get("retornoRegra") || "");
         campos["documentosPessoaFisica"].campo.prop(
             "files",
@@ -528,7 +539,11 @@ const Formulario = (() => {
             }
         );
 
-        campos["clienteFornecedor"].adicionarEvento("blur",buscarClientePorCodigo);
+        campos["clienteFornecedor"].adicionarEvento("blur", buscarClientePorCodigo);
+        campos["formaPagamento"].adicionarEvento("change", () => {
+            campos["documentoConta"].val(campos["documento"].val());
+            campos["titularConta"].val(campos["razaoSocial"].val());
+        });
     }
 
     // configurarPlugins(): void
@@ -595,6 +610,8 @@ const Formulario = (() => {
             if (!campos["mercadoExterior"].campo.prop("checked")) {
                 limparCampos();
             }
+
+            campos["documentoConta"].val("");
             return;
         }
 
@@ -773,6 +790,7 @@ const Formulario = (() => {
             campoComplemento.val(complemento);
             campoEmailContato.val(email);
             campoTelefone.val(telefone);
+            campos["documento"].val(documento);
             campos["titularConta"].val(razaoSocial);
 
             if (campoContatoAdicional) {
@@ -926,11 +944,11 @@ const Formulario = (() => {
         const camposDadosPrincipais = [
             new Campo(
                 "documento", "CPF/CNPJ", "texto", 2,
-                "Pressione TAB ou selecione outro campo para efetuar uma consulta com o documento informado"
+                "Caso seja um CNPJ, pressione TAB ou selecione outro campo para efetuar uma consulta com o documento informado"
             ),
             new Campo("atualizarCadastro","Atualizar cadastro","checkbox",2,
-                "Marque para atualizar cadastro", null, null),
-            new Campo("clienteFornecedor", "Cliente/Fornecedor","texto",4),
+                "Marque para solicitar uma atualização cadastral", null, null),
+            new Campo("clienteFornecedor", "Cliente/fornecedor","texto",4),
             new Campo("tipoPessoa", "Tipo de pessoa", "lista", 2)
                 .adicionarOpcoes([
                     new OpcaoLista("F", "F - Física"),
@@ -1271,7 +1289,13 @@ const Formulario = (() => {
             new Campo("favComplemento", "Complemento", "texto", 4),
             new Campo("favEmail", "E-mail", "email", 4),
             new Campo("favTelefone", "Telefone ou celular", "texto", 2),
-            new Campo("atualizarConta","Atualizar Conta","checkbox",2,"Marque para atualizar os dados bancários"),
+            new Campo(
+                "atualizarConta",
+                "Atualizar conta",
+                "checkbox",
+                2,
+                "Marque para permitir a atualização dos dados bancários",
+            ),
         ];
 
         salvarCampos(camposContaBancaria);
@@ -1323,27 +1347,38 @@ const Formulario = (() => {
 
     async function buscarClientePorCodigo(){
         const codigo = campos["clienteFornecedor"].val();
-        if(codigo.length === 0){
+
+        if (codigo.length === 0) {
             return;
         }
+
         campos["clienteFornecedor"].iniciarCarregamento();
 
         try {
             const clientes = await Consultor.carregarFonte("Clientes", [
                 {
-                    fieldName: "codcli", operator: "=", openingOrder: "", closingOrder: "", value: `'${codigo}'`
+                    fieldName: "codcli",
+                    operator: "=",
+                    openingOrder: "",
+                    closingOrder: "",
+                    value: `'${codigo}'`,
                 }
             ]);
 
-            if( clientes.length === 0 ){
-                Mensagem.exibir('Cliente não localizado','Nenhum cliente encontrado com código informado!','erro');
+            if (clientes.length === 0) {
+                Mensagem.exibir(
+                    'Cliente/fornecedor não localizado',
+                    'Nenhum cadastro foi encontrado com o código informado!',
+                    'erro',
+                );
+                campos["clienteFornecedor"].finalizarCarregamento();
                 return;
             }
 
             const cliente = clientes[0];
 
-            for(const propriedade in cliente){
-                cliente[propriedade] = verificaEspacoVazio(cliente[propriedade]);
+            for (const propriedade in cliente) {
+                cliente[propriedade] = substituirEspacoVazio(cliente[propriedade]);
             }
 
             campos["documento"].val(cliente["cgccpf"]).trigger("blur");
@@ -1373,34 +1408,37 @@ const Formulario = (() => {
             campos["titularConta"].val(cliente["nomcli"]);
             campos["documentoConta"].val(cliente["cgccpf"]);
 
-
-            if(cliente["tipcli"] === "F"){
-
+            if (cliente["tipcli"] === "F") {
                 campos["cep"].val(cliente["cepcli"]);
                 cepAnterior = campos["cep"].cleanVal();
             }
         }
         catch (e) {
-            Mensagem.exibir("Erro ao buscar cliente/fornecedor",`Erro ao buscar cliente/fornecedor através do código: ${e}`,"erro");
+            Mensagem.exibir(
+                "Erro ao buscar cliente/fornecedor",
+                `Erro ao buscar cliente/fornecedor através do código: ${e}`,"erro");
             campos["clienteFornecedor"].finalizarCarregamento();
             return;
         }
 
         campos["clienteFornecedor"].finalizarCarregamento();
     }
+
     function primeiroNaoVazio(primeiro, segundo){
         if (primeiro) {
             return primeiro;
         }
+
         return segundo;
     }
-    function verificaEspacoVazio(textoAnalisado){
-        if(textoAnalisado === " "){
+
+    function substituirEspacoVazio(textoAnalisado){
+        if (textoAnalisado === " ") {
             return "";
         }
+
         return textoAnalisado;
     }
-
 
     return {
         campos,
@@ -1409,6 +1447,7 @@ const Formulario = (() => {
         camposOcultos,
         fontes,
         listarCampos,
+        carregarDadosFluxo,
         carregarDados,
         salvarDados,
         obterValidacoes,
