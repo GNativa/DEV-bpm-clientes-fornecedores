@@ -55,6 +55,7 @@ const Formulario = (() => {
         "revisao": ["retornoRegra", "nomeUsuario", "atualizarConta"]
     };
 
+    // TODO: criar fontes de dados para estados, países e possivelmente formas de pagamento
     const fontes = {
         "bancos": new Fonte("Bancos", "codigo", "nome", ["banco"]),
         //"clientes": new Fonte ("Clientes", "codcli","apecli",["clienteFornecedor"]),
