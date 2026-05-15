@@ -21,7 +21,6 @@ class Fonte {
             opcoes.push(opcao);
         }
 
-        console.log(opcoes);
         return opcoes;
     }
 }

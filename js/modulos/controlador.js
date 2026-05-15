@@ -37,7 +37,6 @@ const Controlador = (() => {
 
         info["getUserData"]()
             .then(function (user) {
-                console.log(user);
                 /*
                 {
                     "id": "",
@@ -61,8 +60,6 @@ const Controlador = (() => {
                 return info["getInfoFromProcessVariables"]();
             })
             .then(function (data) {
-                console.log(data);
-
                 if (!info["isRequestNew"]() && Array.isArray(data)) {
                     const mapa = new Map();
 
@@ -96,8 +93,6 @@ const Controlador = (() => {
         validarFormulario();
 
         let dados = await Formulario.salvarDados();
-
-        console.log(dados);
 
         return {
             formData: dados,
@@ -142,7 +137,6 @@ const Controlador = (() => {
 
             const dados = await Consultor.carregarFonte(fonte.nome)
             fonte.definirDados(dados);
-            console.log(dados);
 
             for (const campo of fonte.camposCorrespondentes) {
                 Formulario.campos[campo].adicionarOpcoes(fonte.gerarOpcoes());

@@ -7,6 +7,8 @@ const Formulario = (() => {
     // Variáveis para uso em validações, consultas, etc.
     let campos = {};
 
+    let codigoAnterior = null;
+
     let cnpjInaptoCadastro = false, cnpjInaptoTitular = false,
         documentoAnterior = "";
     let cepAnterior = "";
@@ -34,32 +36,33 @@ const Formulario = (() => {
     };
     const camposBloqueados = {
         "solicitacao": [],
-        "aprovacaoInicial": ["atualizarCadastro", "clienteFornecedor","cadastroComRestricao", "razaoSocial", "mercadoExterior", "fornecedorIndustria",
-            "ramoAtividade", "nomeContato", "celular", "contatoAdicional", "formaPagamento", "banco", "agenciaDigito",
-            "contaDigito", "tipoConta", "documentoConta", "titularConta", "favNomeFantasia", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco",
+        "aprovacaoInicial": ["atualizarCadastro", "observacoesAtualizacao", "clienteFornecedor","cadastroComRestricao",
+            "razaoSocial", "mercadoExterior", "fornecedorIndustria", "ramoAtividade", "nomeContato", "celular", "formaPagamento",
+            "atualizarConta", "banco", "agenciaDigito", "contaDigito", "tipoConta", "documentoConta", "titularConta",
+            "favNomeFantasia", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco",
             "comprovanteContaBancaria", "retornoRegra"],
         "execucao": [],
-        "aprovacaoFinanceiro": ["atualizarCadastro", "clienteFornecedor","documento", "cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
-            "ramoAtividade", "inscricaoEstadual", "cep", "pais", "estado", "cidade", "logradouro", "numero", "bairro", "complemento", "enderecoCorresp",
-            "nomeContato", "emailContato", "emailAdicional", "telefone", "celular", "contatoAdicional", "formaPagamento",
-            "documentoConta", "titularConta", "favNomeFantasia", "favCep", "favEstado", "favCidade", "favLogradouro",
-            "favBairro", "favNumero", "favComplemento", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco", "retornoRegra"],
+        "aprovacaoFinanceiro": ["atualizarCadastro", "observacoesAtualizacao", "clienteFornecedor","documento",
+            "cadastroComRestricao", "razaoSocial", "nomeFantasia", "mercadoExterior", "fornecedorIndustria",
+            "ramoAtividade", "inscricaoEstadual", "cep", "pais", "estado", "cidade", "logradouro", "numero", "bairro",
+            "complemento", "enderecoCorresp", "nomeContato", "emailContato", "emailAdicional", "telefone", "celular",
+            "contatoAdicional", "formaPagamento", "atualizarConta", "documentoConta", "titularConta", "favNomeFantasia", "favCep",
+            "favEstado", "favCidade", "favLogradouro", "favBairro", "favNumero", "favComplemento", "favEmail", "favTelefone", "observacoes", "documentosPessoaFisica", "comprovanteEndereco", "retornoRegra"],
         "revisao": ["observacoesAprovacao"]
     };
 
     const camposOcultos = {
-        "solicitacao": ["observacoesAprovacao", "retornoRegra", "nomeUsuario", "atualizarConta"],
-        "aprovacaoInicial": ["retornoRegra", "nomeUsuario", "atualizarConta"],
+        "solicitacao": ["observacoesAprovacao", "retornoRegra", "nomeUsuario"],
+        "aprovacaoInicial": ["retornoRegra", "nomeUsuario"],
         "execucao": [],
         "aprovacaoFinanceiro": [ "retornoRegra", "nomeUsuario"],
-        "revisao": ["retornoRegra", "nomeUsuario", "atualizarConta"]
+        "revisao": ["retornoRegra", "nomeUsuario"]
     };
 
     // TODO: criar fontes de dados para estados, países e possivelmente formas de pagamento
     const fontes = {
         "bancos": new Fonte("Bancos", "codigo", "nome", ["banco"]),
         //"clientes": new Fonte ("Clientes", "codcli","apecli",["clienteFornecedor"]),
-
     };
 
     function mostrarCamposFavorecido() {
@@ -100,17 +103,19 @@ const Formulario = (() => {
                 null,
                 [campos["atualizarCadastro"]],
                 null,
-                [campos["clienteFornecedor"]],
-                null,
-                null,
-                [campos["clienteFornecedor"]],
+                [
+                    campos["clienteFornecedor"], campos["observacoesAtualizacao"], campos["documentosAtualizacao"]],
+                [campos["documentosPessoaFisica"], campos["comprovanteEndereco"]],
+                [campos["inscricaoEstadual"]],
+                [campos["clienteFornecedor"], campos["observacoesAtualizacao"]],
             ),
             new Validacao(() => {
                     const atualizarCadastro = campos["atualizarCadastro"].campo.prop("checked");
-                    return campos["formaPagamento"].val() === "3" && atualizarCadastro === true;
+                    return campos["formaPagamento"].val() === "3"
+                        && atualizarCadastro === true;
                 },
                 null,
-                [campos["atualizarCadastro"],campos["formaPagamento"]],
+                [campos["atualizarCadastro"], campos["formaPagamento"]],
                 null,
                 null,
                 null,
@@ -128,9 +133,13 @@ const Formulario = (() => {
             ),
             new Validacao(() => {
                     const documento = campos["documentoConta"].cleanVal();
+                    const atualizarCadastro = campos["atualizarCadastro"].campo.prop("checked");
+                    const atualizarConta = campos["atualizarConta"].campo.prop("checked");
 
                     return campos["formaPagamento"].val() === "3"
-                        && (documento.length !== 11 && documento.length !== 14);
+                        && (documento.length > 0 && documento.length !== 11 && documento.length !== 14)
+                        && (!atualizarCadastro
+                            || (atualizarCadastro && atualizarConta));
                 },
                 "Insira um documento completo.",
                 [campos["documentoConta"]],
@@ -153,7 +162,13 @@ const Formulario = (() => {
             ),
             new Validacao(() => {
                     const tamanhoDocumento = campos["documento"].cleanVal().length;
-                    return tamanhoDocumento > 11 && Utilitario.obterEtapa() !== "aprovacaoInicial";
+                    // Considerar CEP como parâmetro para verificar se as informações estão completas ou não
+                    // Se não vier preenchido, os campos serão desbloqueados (cenário catastrófico)
+                    const cep = campos["cep"].val();
+
+                    return tamanhoDocumento > 11
+                        && Utilitario.obterEtapa() !== "aprovacaoInicial"
+                        && cep !== null && cep !== "";
                 },
                 null,
                 [campos["documento"]],
@@ -195,10 +210,15 @@ const Formulario = (() => {
                 [campos["pais"]],
             ),
             new Validacao(() => {
-                    return campos["formaPagamento"].val() === "3";
+                    const atualizarCadastro = campos["atualizarCadastro"].campo.prop("checked");
+                    const atualizarConta = campos["atualizarConta"].campo.prop("checked");
+
+                    return campos["formaPagamento"].val() === "3"
+                        &&  (!atualizarCadastro
+                            || (atualizarCadastro && atualizarConta));
                 },
                 null,
-                [campos["formaPagamento"]],
+                [campos["formaPagamento"], campos["atualizarCadastro"], campos["atualizarConta"]],
                 null,
                 [campos["comprovanteContaBancaria"], campos["banco"], campos["agenciaDigito"],
                     campos["contaDigito"], campos["tipoConta"], campos["documentoConta"], campos["titularConta"]],
@@ -376,11 +396,21 @@ const Formulario = (() => {
             "files",
             Utilitario.carregarArquivosDeString(mapa.get("comprovanteContaBancaria") || "")
         );
+
         const atualizarCadastro = (mapa.get("atualizarCadastro") ?? "false") === "true";
         campos["atualizarCadastro"].campo.prop("checked", atualizarCadastro);
+
+        campos["clienteFornecedor"].val(mapa.get("clienteFornecedor") || "");
+
+        campos["observacoesAtualizacao"].val(mapa.get("observacoesAtualizacao") || "");
+
         const atualizarConta = (mapa.get("atualizarConta") ?? "false") === "true";
         campos["atualizarConta"].campo.prop("checked", atualizarConta);
-        campos["clienteFornecedor"].val(mapa.get("clienteFornecedor") || "");
+
+        campos["documentosAtualizacao"].campo.prop(
+            "files",
+            Utilitario.carregarArquivosDeString(mapa.get("documentosAtualizacao") || "")
+        );
     }
 
     // salvarDados(): Promise<{}>
@@ -443,9 +473,14 @@ const Formulario = (() => {
         );
         dados.nomeUsuario = campos["nomeUsuario"].val();
         dados.retornoRegra = campos["retornoRegra"].val();
+
         dados.atualizarCadastro = campos["atualizarCadastro"].campo.prop("checked");
+        dados.observacoesAtualizacao = campos["observacoesAtualizacao"].val();
         dados.atualizarConta = campos["atualizarConta"].campo.prop("checked");
         dados.clienteFornecedor = campos["clienteFornecedor"].val();
+        dados.documentosAtualizacao = await Utilitario.salvarArquivosEmString(
+            campos["documentosAtualizacao"].obterElementoHtml()
+        );
 
         return dados;
     }
@@ -455,19 +490,23 @@ const Formulario = (() => {
         Configura máscaras de campos, consultas de APIs e parâmetros diversos.
      */
     function definirEstadoInicial() {
+        // const onKeyPress = (nomeCampo, mascaras, tamanhoPrimeiraMascara) => {
+        const onKeyPress = (nomeCampo, mascaras) => {
+            return function (documento, ev, el, op) {
+                const semMascara = documento.toString().replaceAll(/[.\-/]/g, "");
+                campos[nomeCampo].campo.mask(semMascara.length <= 11 && semMascara.length > 0 ? mascaras[0] : mascaras[1], op);
+            };
+        }
+
+        const mascarasDoc = ["000.000.000-000", "00.000.000/0000-00"];
+
         // Opções de máscara
         const opcoesDocumento = {
-            onKeyPress: function (documento, ev, el, op) {
-                const mascaras = ["000.000.000-000", "00.000.000/0000-00"];
-                campos["documento"].campo.mask(documento.length <= 14 && documento.length > 0 ? mascaras[0] : mascaras[1], op);
-            }
+            onKeyPress: onKeyPress("documento", mascarasDoc)
         };
 
         const opcoesDocumentoConta = {
-            onKeyPress: function (documento, ev, el, op) {
-                const mascaras = ["000.000.000-000", "00.000.000/0000-00"];
-                campos["documentoConta"].campo.mask(documento.length <= 14 && documento.length > 0 ? mascaras[0] : mascaras[1], op);
-            }
+            onKeyPress: onKeyPress("documentoConta", mascarasDoc)
         };
 
         const opcoesContato = {
@@ -646,6 +685,7 @@ const Formulario = (() => {
         if (documento.length < 14 || !consultar || (documentoAnterior !== "" && documento === documentoAnterior)) {
             return;
         }
+
         documentoAnterior = documento;
 
         let titulo = "Consulta por CNPJ";
@@ -701,7 +741,6 @@ const Formulario = (() => {
                 }
 
                 campoDocumento.falharCarregamento();
-                console.log(retorno);
                 Mensagem.exibir(titulo, mensagem, tipoMensagem);
                 limparCampos();
             });
@@ -732,7 +771,6 @@ const Formulario = (() => {
                 // const resposta = retorno["responseJSON"];
                 let mensagem = "Houve um erro não especificado ao consultar o CNPJ.", tipoMensagem = "aviso";
                 campoDocumento.falharCarregamento();
-                console.log(retorno);
                 Mensagem.exibir(titulo, mensagem, tipoMensagem);
             });
         }
@@ -740,16 +778,17 @@ const Formulario = (() => {
         function obterDados(dadosCnpj, apiOrigem) {
             if (apiOrigem === "cnpjWs") {
                 razaoSocial = dadosCnpj["razao_social"];
-                nomeFantasia = dadosCnpj["estabelecimento"]["nome_fantasia"] ?? razaoSocial;
-                cep = dadosCnpj["estabelecimento"]["cep"];
-                estado = dadosCnpj["estabelecimento"]["estado"]["sigla"];
-                cidade = dadosCnpj["estabelecimento"]["cidade"]["nome"];
+                nomeFantasia = dadosCnpj["estabelecimento"]["nome_fantasia"];
+                nomeFantasia = nomeFantasia ? nomeFantasia : razaoSocial;
+                cep = dadosCnpj["estabelecimento"]["cep"] ?? "";
+                estado = dadosCnpj["estabelecimento"]["estado"]?.["sigla"];
+                cidade = dadosCnpj["estabelecimento"]["cidade"]?.["nome"] ?? "";
                 tipoLogradouro = dadosCnpj["estabelecimento"]["tipo_logradouro"] ?? "";
-                logradouro = (tipoLogradouro !== "" ? (tipoLogradouro + " ") : "") + dadosCnpj["estabelecimento"]["logradouro"];
+                logradouro = (tipoLogradouro !== "" ? (tipoLogradouro + " ") : "") + (dadosCnpj["estabelecimento"]["logradouro"] ?? "");
                 numero = dadosCnpj["estabelecimento"]["numero"];
                 bairro = dadosCnpj["estabelecimento"]["bairro"];
                 complemento = (dadosCnpj["estabelecimento"]["complemento"] ?? "").replace(/\s\s+/g, " ");
-                email = dadosCnpj["estabelecimento"]["email"];
+                email = dadosCnpj["estabelecimento"]["email"] ?? "";
                 ddd1 = dadosCnpj["estabelecimento"]["ddd1"] ?? "";
                 telefone1 = dadosCnpj["estabelecimento"]["telefone1"] ?? "";
                 telefone = ddd1 + telefone1;
@@ -759,7 +798,8 @@ const Formulario = (() => {
             }
             else if (apiOrigem === "speedio") {
                 razaoSocial = dadosCnpj["RAZAO SOCIAL"];
-                nomeFantasia = dadosCnpj["NOME FANTASIA"] ?? "";
+                nomeFantasia = dadosCnpj["NOME FANTASIA"];
+                nomeFantasia = nomeFantasia ? nomeFantasia : razaoSocial;
                 cep = dadosCnpj["CEP"];
                 estado = dadosCnpj["UF"];
                 cidade = dadosCnpj["MUNICIPIO"];
@@ -780,7 +820,6 @@ const Formulario = (() => {
         }
 
         function salvarDadosCnpj() {
-            campoDocumento.campo.trigger("change");
             campoRazaoSocial.val(razaoSocial);
             campoNomeFantasia.val(nomeFantasia);
             campoCep.val(cep);
@@ -801,6 +840,7 @@ const Formulario = (() => {
             }
 
             cepAnterior = campos["cep"].cleanVal();
+            campoDocumento.campo.trigger("change");
         }
 
         function limparCampos() {
@@ -871,7 +911,6 @@ const Formulario = (() => {
                 campoBairro.val(bairro);
                 campoComplemento.val(complemento);
             }).fail(function (retorno) {
-                console.log(retorno);
                 mensagem = "Houve um erro ao realizar a consulta por CEP. Tente novamente mais tarde.";
                 Mensagem.exibir(titulo, mensagem, "erro");
                 campoCep.falharCarregamento();
@@ -897,7 +936,8 @@ const Formulario = (() => {
     function gerar() {
         const camposAprovacao = [
             new Campo(
-                "observacoesAprovacao", "Observações de aprovação", "area-texto", 12, null, 5
+                "observacoesAprovacao", "Observações de aprovação", "area-texto", 12,
+                null, 5
             ),
         ];
 
@@ -961,6 +1001,11 @@ const Formulario = (() => {
                 "checkbox", 2, "Marcar caso seja necessário realizar um cadastro com alguma restrição"
             ),
             new Campo("razaoSocial", "Razão social", "texto", 4),
+            new Campo(
+                "observacoesAtualizacao", "Observações da atualização", "area-texto", 12,
+                "Descreva quais informações do cliente/fornecedor serão atualizadas e, opcionalmente, " +
+                "por qual motivo.", 5
+            ),
             new Campo("nomeFantasia", "Nome fantasia", "texto", 4),
             new Campo("mercadoExterior", "Mercado exterior", "checkbox", 2),
             new Campo("fornecedorIndustria", "É indústria", "checkbox", 2),
@@ -1256,6 +1301,10 @@ const Formulario = (() => {
                     new OpcaoLista("7", "7 - Cartão de crédito"),
                     new OpcaoLista("8", "8 - Cheque"),
                 ]),
+            new Campo(
+                "atualizarConta", "Atualizar conta bancária", "checkbox", 2,
+                "Marque caso queira atualizar os dados bancários do fornecedor"
+            ),
         ];
 
         salvarCampos(camposDadosPrincipais);
@@ -1291,13 +1340,6 @@ const Formulario = (() => {
             new Campo("favComplemento", "Complemento", "texto", 4),
             new Campo("favEmail", "E-mail", "email", 4),
             new Campo("favTelefone", "Telefone ou celular", "texto", 2),
-            new Campo(
-                "atualizarConta",
-                "Atualizar conta",
-                "checkbox",
-                2,
-                "Marque para permitir a atualização dos dados bancários",
-            ),
         ];
 
         salvarCampos(camposContaBancaria);
@@ -1305,6 +1347,11 @@ const Formulario = (() => {
 
         const camposDetalhesDocumentos = [
             new Campo("observacoes", "Observações", "area-texto", 12, null, 5),
+            new Campo(
+                "documentosAtualizacao", "Documentos da atualização", "anexo", 4,
+                "Anexe aqui os documentos comprovando as alterações feitas no cadastro.",
+                null, null, {"multiple": true}
+            ),
             new Campo(
                 "documentosPessoaFisica", "Documentos de pessoa física", "anexo", 4,
                 null, null, null, {"multiple": true}
@@ -1315,7 +1362,7 @@ const Formulario = (() => {
 
         salvarCampos(camposDetalhesDocumentos);
         secaoDetalhesDocumentos = new Secao("detalhesDocumentos", "Detalhes e documentos", camposDetalhesDocumentos);
-        
+
         const camposControle = [
             new Campo(
                 "retornoRegra", "Retorno da regra", "area-texto", "12",
@@ -1351,6 +1398,11 @@ const Formulario = (() => {
         const codigo = campos["clienteFornecedor"].val();
 
         if (codigo.length === 0) {
+            codigoAnterior = null;
+            return;
+        }
+
+        if (codigo === codigoAnterior) {
             return;
         }
 
@@ -1383,6 +1435,8 @@ const Formulario = (() => {
                 cliente[propriedade] = substituirEspacoVazio(cliente[propriedade]);
             }
 
+            codigoAnterior = cliente["codcli"];
+
             campos["documento"].val(cliente["cgccpf"]).trigger("blur");
             campos["razaoSocial"].val(cliente["nomcli"]);
             campos["nomeFantasia"].val(cliente["apecli"]);
@@ -1406,7 +1460,7 @@ const Formulario = (() => {
             campos["banco"].val(cliente["codban"]);
             campos["agenciaDigito"].val(cliente["codage"]);
             campos["contaDigito"].val(cliente["ccbfor"]);
-            campos["tipoConta"].val(cliente["tiptcc"]);
+            campos["tipoConta"].val(cliente["tiptcc"] === "0" ? "" : cliente["tiptcc"]);
             campos["titularConta"].val(cliente["nomcli"]);
             campos["documentoConta"].val(cliente["cgccpf"]);
 
@@ -1434,12 +1488,12 @@ const Formulario = (() => {
         return segundo;
     }
 
-    function substituirEspacoVazio(textoAnalisado){
-        if (textoAnalisado === " ") {
+    function substituirEspacoVazio(texto){
+        if (texto === " ") {
             return "";
         }
 
-        return textoAnalisado;
+        return texto;
     }
 
     return {
