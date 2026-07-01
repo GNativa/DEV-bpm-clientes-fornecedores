@@ -5,6 +5,7 @@
 
 const Formulario = (() => {
     // Variáveis para uso em validações, consultas, etc.
+    /** @type {Record<string, Campo>} */
     let campos = {};
 
     let codigoAnterior = null;
@@ -12,6 +13,8 @@ const Formulario = (() => {
     let cnpjInaptoCadastro = false, cnpjInaptoTitular = false,
         documentoAnterior = "";
     let cepAnterior = "";
+
+    let clientesBuscados = [];
 
     const tituloDadosPrincipais = "Dados principais";
     const tituloContaBancaria = "Conta bancária";
@@ -28,7 +31,7 @@ const Formulario = (() => {
     const camposObrigatorios = {
         "solicitacao": ["razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "pais", "estado", "cidade", "logradouro",
             "numero", "bairro", "formaPagamento"],
-        "aprovacaoInicial": ["observacoesAprovacao", "nomeFantasia"],
+        "aprovacaoInicial": ["observacoesAprovacao", "nomeFantasia", "calcularSenar"],
         "execucao": [],
         "aprovacaoFinanceiro": ["observacoesAprovacao"],
         "revisao": ["razaoSocial", "nomeFantasia", "ramoAtividade", "cep", "estado", "cidade", "logradouro", "numero", "bairro",
@@ -52,11 +55,11 @@ const Formulario = (() => {
     };
 
     const camposOcultos = {
-        "solicitacao": ["observacoesAprovacao", "retornoRegra", "nomeUsuario"],
+        "solicitacao": ["calcularSenar", "observacoesAprovacao", "retornoRegra", "nomeUsuario"],
         "aprovacaoInicial": ["retornoRegra", "nomeUsuario"],
         "execucao": [],
-        "aprovacaoFinanceiro": [ "retornoRegra", "nomeUsuario"],
-        "revisao": ["retornoRegra", "nomeUsuario"]
+        "aprovacaoFinanceiro": ["calcularSenar", "retornoRegra", "nomeUsuario"],
+        "revisao": ["calcularSenar", "retornoRegra", "nomeUsuario"]
     };
 
     // TODO: criar fontes de dados para estados, países e possivelmente formas de pagamento
@@ -69,8 +72,7 @@ const Formulario = (() => {
         const documentoCadastro = campos["documento"].cleanVal();
         const documentoConta = campos["documentoConta"].cleanVal();
 
-        return Utilitario.obterEtapa() !== "aprovacaoInicial"
-            && campos["formaPagamento"].val() === "3"
+        return campos["formaPagamento"].val() === "3"
             && (documentoCadastro.length === 14 && documentoConta.length === 14)
             && (documentoCadastro !== documentoConta);
     }
@@ -103,8 +105,7 @@ const Formulario = (() => {
                 null,
                 [campos["atualizarCadastro"]],
                 null,
-                [
-                    campos["clienteFornecedor"], campos["observacoesAtualizacao"], campos["documentosAtualizacao"]],
+                [campos["clienteFornecedor"], campos["observacoesAtualizacao"], campos["documentosAtualizacao"]],
                 [campos["documentosPessoaFisica"], campos["comprovanteEndereco"]],
                 [campos["inscricaoEstadual"]],
                 [campos["clienteFornecedor"], campos["observacoesAtualizacao"]],
@@ -359,6 +360,8 @@ const Formulario = (() => {
         campos["celular"].val(mapa.get("celular") || "");
         campos["contatoAdicional"].val(mapa.get("contatoAdicional") || "");
         campos["formaPagamento"].val(mapa.get("formaPagamento") || "");
+        campos["calcularSenar"].val(mapa.get("calcularSenar") || "");
+
         campos["banco"].val(mapa.get("banco") || "");
         campos["agenciaDigito"].val(mapa.get("agenciaDigito") || "");
         campos["contaDigito"].val(mapa.get("contaDigito") || "");
@@ -443,7 +446,9 @@ const Formulario = (() => {
         dados.telefone = campos["telefone"].cleanVal();
         dados.celular = campos["celular"].cleanVal();
         dados.contatoAdicional = campos["contatoAdicional"].cleanVal();
-        dados.formaPagamento = campos["formaPagamento"].val();
+        dados.formaPagamento = campos["formaPagamento"].val()
+        dados.calcularSenar = campos["calcularSenar"].val();
+
         dados.banco = campos["banco"].val();
         dados.agenciaDigito = campos["agenciaDigito"].val();
         dados.contaDigito = campos["contaDigito"].val();
@@ -490,23 +495,38 @@ const Formulario = (() => {
         Configura máscaras de campos, consultas de APIs e parâmetros diversos.
      */
     function definirEstadoInicial() {
-        // const onKeyPress = (nomeCampo, mascaras, tamanhoPrimeiraMascara) => {
         const onKeyPress = (nomeCampo, mascaras) => {
-            return function (documento, ev, el, op) {
+            return function (documento, event, el, op) {
                 const semMascara = documento.toString().replaceAll(/[.\-/]/g, "");
-                campos[nomeCampo].campo.mask(semMascara.length <= 11 && semMascara.length > 0 ? mascaras[0] : mascaras[1], op);
+                let mascaraDeterminada;
+
+                if (semMascara.length === 11 && !/[A-z]/.test(semMascara)) {
+                    mascaraDeterminada = mascaras[0];
+                }
+                else {
+                    mascaraDeterminada = mascaras[1];
+                }
+
+                campos[nomeCampo].campo.mask(mascaraDeterminada, op);
+                event.currentTarget.value = event.currentTarget.value.toUpperCase();
             };
         }
 
-        const mascarasDoc = ["000.000.000-000", "00.000.000/0000-00"];
+        const mascarasDoc = ["000.000.000-000", "AA.AAA.AAA/AAAA-00"];
 
         // Opções de máscara
         const opcoesDocumento = {
-            onKeyPress: onKeyPress("documento", mascarasDoc)
+            onKeyPress: onKeyPress("documento", mascarasDoc),
+            translation: {
+                A: {pattern: /[A-z0-9]/},
+            },
         };
 
         const opcoesDocumentoConta = {
-            onKeyPress: onKeyPress("documentoConta", mascarasDoc)
+            onKeyPress: onKeyPress("documentoConta", mascarasDoc),
+            translation: {
+                A: {pattern: /[A-z0-9]/},
+            },
         };
 
         const opcoesContato = {
@@ -514,23 +534,23 @@ const Formulario = (() => {
                 const mascaras = ["(00) 0000-00009", "(00) 0 0000-0000"];
                 campos["contatoAdicional"].campo.mask(numero.length <= 14 && numero.length > 0 ? mascaras[0] : mascaras[1], op);
             },
-            clearIfNotMatch: true
+            clearIfNotMatch: true,
         };
 
         // Configuração das máscaras
-        campos["documento"].configurarMascara("00.000.000/0000-00", opcoesDocumento);
+        campos["documento"].configurarMascara(mascarasDoc[1], opcoesDocumento);
         campos["cep"].configurarMascara("00000-000");
         campos["telefone"].configurarMascara("(00) 0000-0000");
         campos["celular"].configurarMascara("(00) 0 0000-0000");
         campos["contatoAdicional"].configurarMascara("(00) 0 0000-0000", opcoesContato);
 
-        campos["documentoConta"].configurarMascara("00.000.000/0000-00", opcoesDocumentoConta);
+        campos["documentoConta"].configurarMascara(mascarasDoc[1], opcoesDocumentoConta);
         campos["favCep"].configurarMascara("00000-000");
         campos["favTelefone"].configurarMascara("(00) 0000-0000");
         campos["clienteFornecedor"].configurarMascara('Z', {
             translation: {
                 'Z': { pattern: /[0-9]/, recursive: true }
-            }
+            },
         });
 
         // Configuração das consultas por API
@@ -542,6 +562,7 @@ const Formulario = (() => {
             carregaveisCnpj,
             "carregavel-documento",
             () => {
+                // TODO: comentar
                 consultarCnpj("cadastro", ...carregaveisCnpj);
             }
         );
@@ -581,10 +602,6 @@ const Formulario = (() => {
         );
 
         campos["clienteFornecedor"].adicionarEvento("blur", buscarClientePorCodigo);
-        campos["formaPagamento"].adicionarEvento("change", () => {
-            campos["documentoConta"].val(campos["documento"].val());
-            campos["titularConta"].val(campos["razaoSocial"].val());
-        });
     }
 
     // configurarPlugins(): void
@@ -608,11 +625,24 @@ const Formulario = (() => {
             "change",
             function () {
                const atualizarCadastro = campos["atualizarCadastro"].campo.prop("checked");
-               secaoDadosPrincipais.atualizarTitulo(`${tituloDadosPrincipais}${atualizarCadastro ? " - Atualização" : ""}`);
-               secaoContaBancaria.atualizarTitulo(`${tituloContaBancaria}${atualizarCadastro ? " - Atualização" : ""}`);
+               const sufixoAtualizacao = atualizarCadastro ? " - Atualização" : "";
+               secaoDadosPrincipais.atualizarTitulo(`${tituloDadosPrincipais}${sufixoAtualizacao}`);
+               secaoContaBancaria.atualizarTitulo(`${tituloContaBancaria}${sufixoAtualizacao}`);
             },
         );
-        // A implementar.
+
+        campos["formaPagamento"].adicionarEvento("change", (evento) => {
+            const formaSelecionada = evento.currentTarget.value;
+
+            if (formaSelecionada === "3" && !campos["documentoConta"].val()) {
+                campos["documentoConta"].val(campos["documento"].val());
+            }
+            else if (formaSelecionada !== "3") {
+                campos["documentoConta"].val("");
+            }
+
+            campos["titularConta"].val(campos["razaoSocial"].val());
+        });
     }
 
     // listarCampos(): void
@@ -1301,6 +1331,14 @@ const Formulario = (() => {
                     new OpcaoLista("7", "7 - Cartão de crédito"),
                     new OpcaoLista("8", "8 - Cheque"),
                 ]),
+            new Campo("calcularSenar", "Calcular Senar", "lista", 4, null, null, null, null, {
+                mensagem: '<strong>Atenção:</strong> Verifique se a operação corresponde à venda de commodities. Caso '
+                    + 'afirmativo, selecione a opção <strong>"Sim"</strong>.',
+            })
+                .adicionarOpcoes([
+                    new OpcaoLista("S", "S - Sim"),
+                    new OpcaoLista("N", "N - Não"),
+                ]),
             new Campo(
                 "atualizarConta", "Atualizar conta bancária", "checkbox", 2,
                 "Marque caso queira atualizar os dados bancários do fornecedor"
@@ -1440,8 +1478,8 @@ const Formulario = (() => {
             campos["documento"].val(cliente["cgccpf"]).trigger("blur");
             campos["razaoSocial"].val(cliente["nomcli"]);
             campos["nomeFantasia"].val(cliente["apecli"]);
-            campos["mercadoExterior"].campo.prop("checked", (cliente["tipmer"]) === "E");
-            campos["fornecedorIndustria"].campo.prop("checked", (cliente["tipemp"]) === "1");
+            campos["mercadoExterior"].campo.prop("checked", cliente["tipmer"] === "E");
+            campos["fornecedorIndustria"].campo.prop("checked", cliente["tipemp"] === "1");
             campos["ramoAtividade"].val(cliente["codram"]);
             campos["inscricaoEstadual"].val(cliente["insest"]);
             campos["estado"].val(cliente["sigufs"]);
